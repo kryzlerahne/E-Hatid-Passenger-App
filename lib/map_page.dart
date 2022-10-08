@@ -305,7 +305,7 @@ class MapSampleState extends State<MapSample> {
                     showDialog(
                       context: context,
                         builder: (context) {
-                          Future.delayed(Duration(seconds: 13), () {
+                          Future.delayed(Duration(seconds: 3), () {
                             Navigator.pushReplacement(context, MaterialPageRoute(
                                 builder: (_) => AcceptDecline(),
                             ),

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:ehatid_passenger_app/navigation_bar.dart';
+import 'package:ehatid_passenger_app/navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'constants.dart';
@@ -45,7 +45,6 @@ class _confirmCancelState extends State<confirmCancel> {
                   top: -7.h,
                   child: Image.asset("assets/images/Vector 10 (4).png",
                     width: Adaptive.w(100),
-                    height: 85.h,
                 ),
                   ),
           ],

@@ -1,7 +1,6 @@
 import 'dart:async';
 //import 'package:ehatid_driver_app/constants.dart';
 import 'package:ehatid_passenger_app/confirmCancellation.dart';
-import 'package:ehatid_passenger_app/navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
@@ -47,7 +46,6 @@ class _BookingComplete extends State<BookingComplete> {
                       top: -7.h,
                       child: Image.asset("assets/images/Vector 10 (4).png",
                         width: Adaptive.w(100),
-                        height: 85.h,
                       ),
                     ),
                   ],
