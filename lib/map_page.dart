@@ -206,6 +206,8 @@ class MapSampleState extends State<MapSample> {
                             print(value);
                           },
                         decoration: InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.white),
                           borderRadius: BorderRadius.circular(15),
@@ -232,6 +234,8 @@ class MapSampleState extends State<MapSample> {
                             print(value);
                           },
                           decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.white),
                               borderRadius: BorderRadius.circular(15),
@@ -301,7 +305,7 @@ class MapSampleState extends State<MapSample> {
                     showDialog(
                       context: context,
                         builder: (context) {
-                          Future.delayed(Duration(seconds: 3), () {
+                          Future.delayed(Duration(seconds: 13), () {
                             Navigator.pushReplacement(context, MaterialPageRoute(
                                 builder: (_) => AcceptDecline(),
                             ),
@@ -433,7 +437,7 @@ class BookingSuccessDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: EdgeInsets.symmetric(vertical: Adaptive.h(40)),
+      insetPadding: EdgeInsets.symmetric(vertical: Adaptive.h(36)),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(19)
       ),
@@ -444,11 +448,10 @@ class BookingSuccessDialog extends StatelessWidget {
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: Adaptive.h(2),),
+              SizedBox(height: Adaptive.h(4),),
               SpinKitFadingCircle(
                 color: Colors.black,
                 size: 50,
-
               ),
               Container(
                 width: Adaptive.w(60),

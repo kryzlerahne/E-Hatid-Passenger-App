@@ -355,7 +355,7 @@ class BookingSuccessDialog extends StatelessWidget {
                       style: TextStyle(
                         fontFamily: 'Montserrat',
                         color: Colors.black,
-                        fontSize: 35,
+                        fontSize: 23.sp,
                         letterSpacing: -0.5,
                         fontWeight: FontWeight.bold,
                       ),

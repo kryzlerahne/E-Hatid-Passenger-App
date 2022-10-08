@@ -191,7 +191,7 @@ class cancelDialog extends StatelessWidget {
                              style: TextStyle(
                                fontFamily: 'Montserrat',
                                color: Colors.black,
-                               fontSize: 17,
+                               fontSize: 15.sp,
                                fontWeight: FontWeight.w500,
                              ),
                            ),
