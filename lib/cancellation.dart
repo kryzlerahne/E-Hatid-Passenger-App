@@ -1,6 +1,7 @@
 import 'dart:async';
 //import 'package:ehatid_driver_app/constants.dart';
 import 'package:ehatid_passenger_app/confirmCancellation.dart';
+import 'package:ehatid_passenger_app/navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
@@ -37,15 +38,16 @@ class _BookingComplete extends State<BookingComplete> {
             alignment: Alignment.center,
             children: <Widget>[
               Container(
-                height: size.height,
+                height: 100.h,
                 width: 100.w,
                 child: Stack(
                   alignment: Alignment.center,
                   children: <Widget>[
                     Positioned(
-                      top: -30,
+                      top: -7.h,
                       child: Image.asset("assets/images/Vector 10 (4).png",
                         width: Adaptive.w(100),
+                        height: 85.h,
                       ),
                     ),
                   ],
@@ -92,7 +94,7 @@ class _BookingComplete extends State<BookingComplete> {
               ),
               Positioned(
                 top:Adaptive.h(78),
-                left: Adaptive.w(14),
+                left: Adaptive.w(15),
                 child: Column(
                   children: [
                     MaterialButton(
@@ -191,7 +193,7 @@ class cancelDialog extends StatelessWidget {
                              style: TextStyle(
                                fontFamily: 'Montserrat',
                                color: Colors.black,
-                               fontSize: 17,
+                               fontSize: 16.sp,
                                fontWeight: FontWeight.w500,
                              ),
                            ),

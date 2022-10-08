@@ -298,7 +298,7 @@ class _tripInvoiceState extends State<tripInvoice> {
               SizedBox(height: Adaptive.h(100),),
 
               Positioned(
-                top:Adaptive.h(72),
+                top:Adaptive.h(74),
                 left: Adaptive.w(10),
                 child: Container(
                   alignment: Alignment.center,
@@ -329,7 +329,7 @@ class _tripInvoiceState extends State<tripInvoice> {
                 ),
               ),
               Positioned(
-                top:Adaptive.h(78),
+                top:Adaptive.h(80),
                 left: Adaptive.w(20),
                 child: MaterialButton(
                   onPressed: (){
