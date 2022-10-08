@@ -42,9 +42,9 @@ class _confirmCancelState extends State<confirmCancel> {
               alignment: Alignment.center,
               children: <Widget>[
                 Positioned(
-                top: 0,
-                child: Image.asset("assets/images/Vector 10.png",
-                width: Adaptive.w(100),
+                 top: -30,
+                  child: Image.asset("assets/images/Vector 10 (4).png",
+                    width: Adaptive.w(100),
                 ),
                   ),
           ],
