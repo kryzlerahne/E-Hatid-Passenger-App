@@ -1,0 +1,80 @@
+description: "A new Flutter application."
+name: "ehatid_passenger_app"
+publish_to: "none"
+version: "1.0.0+1"
+dependencies:
+  cupertino_icons: ^1.0.5
+  intro_slider: ^2.3.4
+  simple_animations: ^5.0.0+2
+  animate_do: ^2.1.0
+  intl_phone_number_input: ^0.7.0+2
+  intl_phone_field: ^3.1.0
+  pin_code_fields: ^7.4.0
+  google_fonts: ^3.0.1
+  firebase_core: ^1.22.0
+  firebase_auth: ^3.9.0
+  cloud_firestore: ^3.4.8
+  pinput: ^2.2.12
+  email_validator: ^2.1.16
+  flutter_screenutil: ^5.5.4
+  shared_preferences: ^2.0.15
+  flutter_hooks: ^0.18.5+1
+  curved_navigation_bar: ^1.0.3
+  sliding_up_panel: ^2.0.0+1
+  flutter_spinkit: ^5.1.0
+
+  responsive_sizer: ^3.1.1
+
+  flutter_polyline_points: ^1.0.0
+  google_maps_flutter: ^2.2.0
+  location: ^4.4.0
+  url_launcher: ^6.1.5
+  http: ^0.13.5
+  flutter:
+    sdk: "flutter"
+  supercharged: ^2.1.1
+dev_dependencies:
+  flutter_test:
+    sdk: "flutter"
+  flutter_launcher_icons: ^0.10.0
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/appIcon.png"
+  flutter_lints: ^2.0.0
+environment:
+  sdk: ">=2.17.0 <3.0.0"
+flutter:
+  assets:
+    - assets/images/
+  fonts:
+    -
+      family: "Rubik"
+      fonts:
+        -
+          asset: assets/fonts/Rubik-Regular.ttf
+          style: "normal"
+          weight: 400
+    -
+      family: "Montserrat"
+      fonts:
+        -
+          asset: assets/fonts/Montserrat-Bold.ttf
+          style: "normal"
+          weight: 900
+        -
+          asset: assets/fonts/Montserrat-Regular.ttf
+          style: "normal"
+        -
+          asset: assets/fonts/Montserrat-SemiBold.ttf
+          style: "normal"
+          weight: 500
+        -
+          asset: assets/fonts/Montserrat-Medium.ttf
+          style: "normal"
+          weight: 300
+        -
+          asset: assets/fonts/Montserrat-Regular.ttf
+          style: "italic"
+          weight: 500
+  uses-material-design: true
