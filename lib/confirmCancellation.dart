@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:ehatid_passenger_app/navigation.dart';
+import 'package:ehatid_passenger_app/navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'constants.dart';
@@ -15,12 +15,12 @@ class _confirmCancelState extends State<confirmCancel> {
   @override
   void initState() {
     //seconds of wait for loading screen
-    Timer(const Duration(seconds: 6), (){
+   Timer(const Duration(seconds: 6), (){
     //after 6 seconds
     Navigator.pushReplacement(context, MaterialPageRoute(builder: (context){
-      return const Navigation();
+    return const Navigation();
     }));
-     });
+    });
     super.initState();
   }
 
@@ -42,9 +42,10 @@ class _confirmCancelState extends State<confirmCancel> {
               alignment: Alignment.center,
               children: <Widget>[
                 Positioned(
-                 top: -30,
+                  top: -7.h,
                   child: Image.asset("assets/images/Vector 10 (4).png",
                     width: Adaptive.w(100),
+                    height: 85.h,
                 ),
                   ),
           ],
@@ -90,7 +91,7 @@ class _confirmCancelState extends State<confirmCancel> {
               ),
                 Positioned(
                   top:Adaptive.h(60),
-                  left: Adaptive.w(17),
+                  left: Adaptive.w(18),
                    child: Column(
                    children: [
                       MaterialButton(
