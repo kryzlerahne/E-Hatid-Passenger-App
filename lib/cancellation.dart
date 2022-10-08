@@ -1,7 +1,6 @@
 import 'dart:async';
 //import 'package:ehatid_driver_app/constants.dart';
 import 'package:ehatid_passenger_app/confirmCancellation.dart';
-import 'package:ehatid_passenger_app/navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 

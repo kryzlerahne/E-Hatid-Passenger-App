@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:ehatid_passenger_app/navigation_screen.dart';
+import 'package:ehatid_passenger_app/tripInvoice.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
@@ -435,7 +436,7 @@ class BookingSuccessDialog extends StatelessWidget {
             MaterialButton(
               onPressed: () {
                 Navigator.pushReplacement(context, MaterialPageRoute(
-                  builder: (_) => DriverMap(),
+                  builder: (_) => tripInvoice(),
                 ),
                 );
               },

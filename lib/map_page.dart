@@ -296,12 +296,12 @@ class MapSampleState extends State<MapSample> {
                   );
 
                   _setPolyline(directions['polyline_decoded']);
-                  Timer(const Duration(seconds: 6), (){
+                  Timer(const Duration(seconds: 4), (){
                     //after 6 seconds
                     showDialog(
                       context: context,
                         builder: (context) {
-                          Future.delayed(Duration(seconds: 5), () {
+                          Future.delayed(Duration(seconds: 3), () {
                             Navigator.pushReplacement(context, MaterialPageRoute(
                                 builder: (_) => AcceptDecline(),
                             ),

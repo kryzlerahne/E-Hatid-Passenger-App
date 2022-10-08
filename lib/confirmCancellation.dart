@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:ehatid_passenger_app/navigation_bar.dart';
+import 'package:ehatid_passenger_app/navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'constants.dart';
