@@ -1,9 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ehatid_passenger_app/Screens/IntroSlider/intro.dart';
 import 'package:ehatid_passenger_app/Screens/Login/sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
+
+import '../../Wallet/wallet.dart';
 
 class RegisterPage extends StatefulWidget {
   // final VoidCallback showLoginPage;
@@ -17,41 +22,70 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
 
-  //text controller
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmpasswordController = TextEditingController();
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _userNameController = TextEditingController();
+  final FirebaseAuth fAuth = FirebaseAuth.instance;
+  User? currentFirebaseUser;
+
+  TextEditingController _firstNameController = TextEditingController();
+  TextEditingController _lastNameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _userNameController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
+  TextEditingController _confirmpasswordController = TextEditingController();
 
   @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    //_confirmpasswordController.dispose();
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _userNameController.dispose();
-    super.dispose();
-  }
 
   Future signUp() async {
-    //authenticate or create user
-    if (passwordConfirmed()) {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext c)
+        {
+          return ProgressDialog(message: "Processing, Please wait...",);
+        }
+    );
 
-      //add user details
-      addUserDetails(
-        _firstNameController.text.trim(),
-        _lastNameController.text.trim(),
-        _emailController.text.trim(),
-        _userNameController.text.trim(),
-        _passwordController.text.trim(),
-      );
+    final User? firebaseUser = (
+        await fAuth.createUserWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        ).catchError((msg){
+          Navigator.pop(context);
+          Fluttertoast.showToast(msg: "Error: " + msg.toString());
+        })
+    ).user;
+
+    if(firebaseUser != null)
+    {
+      Map userMap =
+      {
+        "id": firebaseUser.uid,
+        "first_name": _firstNameController.text.trim(),
+        "last_name": _firstNameController.text.trim(),
+        "email": _emailController.text.trim(),
+        "username": _userNameController.text.trim(),
+        "password": _passwordController.text.trim(),
+      };
+
+      DatabaseReference driversRef = FirebaseDatabase.instance.ref().child("passengers");
+      driversRef.child(firebaseUser.uid).set(userMap);
+
+      currentFirebaseUser = firebaseUser;
+      Fluttertoast.showToast(msg: "Account has been Created.");
+      Navigator.push(context, MaterialPageRoute(builder: (c)=> Wallet()));
+    }
+    else
+    {
+      Navigator.pop(context);
+      Fluttertoast.showToast(msg: "Account has not been Created.");
+    }
+  }
+
+  bool passwordConfirmed() {
+    if (_passwordController.text.trim() ==
+        _confirmpasswordController.text.trim()) {
+      return true;
+    } else {
+      return false;
     }
   }
 
@@ -66,14 +100,6 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  bool passwordConfirmed() {
-    if (_passwordController.text.trim() ==
-        _confirmpasswordController.text.trim()) {
-      return true;
-    } else {
-      return false;
-    }
-  }
 
   final formkey = GlobalKey<FormState>();
   bool _isHidden = true;
@@ -318,12 +344,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 25),
                     child: MaterialButton(
                       onPressed: (){
-                        if(formkey.currentState!.validate()){
-                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text("Success"),
-                          ));
-                          signUp;
-                        }
+                          signUp();
                       },
                       color: Color(0xFFFED90F),
                       shape: RoundedRectangleBorder(

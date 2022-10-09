@@ -22,7 +22,12 @@ dependencies:
   curved_navigation_bar: ^1.0.3
   sliding_up_panel: ^2.0.0+1
   flutter_spinkit: ^5.1.0
-  get: ^4.6.5
+
+  firebase_database: ^9.0.5
+  fluttertoast: ^8.0.8
+
+  geolocator: ^9.0.2
+  provider: ^6.0.3
 
   responsive_sizer: ^3.1.1
 
@@ -30,7 +35,7 @@ dependencies:
   google_maps_flutter: ^2.2.0
   location: ^4.4.0
   url_launcher: ^6.1.5
-  http: ^0.13.5
+  http: any
   flutter:
     sdk: "flutter"
   supercharged: ^2.1.1

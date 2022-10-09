@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:math';
-
 import 'package:ehatid_passenger_app/Screens/Wallet/wallet.dart';
 import 'package:ehatid_passenger_app/accept_decline.dart';
 import 'package:ehatid_passenger_app/location_service.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+
+import 'assistant_methods.dart';
 
 class MapSample extends StatefulWidget {
   @override
@@ -19,9 +19,11 @@ class MapSample extends StatefulWidget {
 }
 
 class MapSampleState extends State<MapSample> {
-  Completer<GoogleMapController> _controller = Completer();
+  Completer<GoogleMapController> _controllerGoogleMap = Completer();
   TextEditingController _originController = TextEditingController();
   TextEditingController _destinationController = TextEditingController();
+
+  GoogleMapController? newGoogleMapController;
 
   Set<Marker> _markers = Set<Marker>();
   Set<Polygon> _polygons = Set<Polygon>();
@@ -36,49 +38,42 @@ class MapSampleState extends State<MapSample> {
     zoom: 14.4746,
   );
 
-  /**static final Marker _kGooglePlexMarker = Marker(
-      markerId: MarkerId('_kGooglePlex'),
-      infoWindow: InfoWindow(title: 'Your Location'),
-      icon: BitmapDescriptor.defaultMarker,
-      position: LatLng(37.42796133580664, -122.085749655962),
-      );
-      static final CameraPosition _kLake = CameraPosition(
-      bearing: 192.8334901395799,
-      target: LatLng(37.43296265331129, -122.08832357078792),
-      tilt: 59.440717697143555,
-      zoom: 19.151926040649414);
+  Position? userCurrentPosition;
+  var geoLocator = Geolocator();
 
-      static final Marker _kLakeMarker = Marker(
-      markerId: MarkerId('_kLakeMarker'),
-      infoWindow: InfoWindow(title: 'My Destination'),
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-      position: LatLng(37.43296265331129, -122.08832357078792),
-      );
+  LocationPermission? _locationPermission;
 
-      static final Polyline _kPolyline = Polyline(
-      polylineId: PolylineId('_kPolyline'),
-      points: [
-      LatLng(37.42796133580664, -122.085749655962),
-      LatLng(37.43296265331129, -122.08832357078792),
-      ],
-      width: 5,
-      );
+  checkIfLocationPermissionAllowed() async
+  {
+    _locationPermission = await Geolocator.requestPermission();
 
-      static final Polygon _kPolygon = Polygon(polygonId: PolygonId('_kPolygon'),
-      points: [
-      LatLng(37.43296265331129, -122.08832357078792),
-      LatLng(37.42796133580664, -122.085749655962),
-      LatLng(37.418, -122.092),
-      LatLng(37.435, -122.092)
-      ],
-      strokeWidth: 5,
-      fillColor: Colors.transparent,
-      );**/
+    if(_locationPermission == LocationPermission.denied)
+    {
+      _locationPermission = await Geolocator.requestPermission();
+    }
+  }
+
+  locateUserPosition() async {
+    Position cPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    userCurrentPosition = cPosition;
+    
+    LatLng latLngPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
+    
+    CameraPosition cameraPosition = CameraPosition(target: latLngPosition, zoom: 14);
+
+    newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+
+    String humanReadableAddress = await AssistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!);
+    print("this is your address =" + humanReadableAddress);
+  }
+
+
   @override
   void initState() {
     super.initState();
-
     _setMarker(LatLng(37.42796133580664, -122.085749655962));
+
+    checkIfLocationPermissionAllowed();
   }
 
   void _setMarker(LatLng point){
@@ -146,12 +141,18 @@ class MapSampleState extends State<MapSample> {
           Expanded(
             child: GoogleMap(
               mapType: MapType.normal,
+              myLocationEnabled: true,
+              zoomGesturesEnabled: true,
+              zoomControlsEnabled: true,
               markers: _markers,
               polygons: _polygons,
               polylines: _polylines,
               initialCameraPosition: _kGooglePlex,
               onMapCreated: (GoogleMapController controller) {
-                _controller.complete(controller);
+                _controllerGoogleMap.complete(controller);
+                newGoogleMapController = controller;
+
+                locateUserPosition();
               },
               onTap: (point) {
                 setState(() {
@@ -389,7 +390,7 @@ class MapSampleState extends State<MapSample> {
       ) async {
    // final double lat = place['geometry']['location']['lat'];
    // final double lng = place['geometry']['location']['lng'];
-    final GoogleMapController controller = await _controller.future;
+    final GoogleMapController controller = await _controllerGoogleMap.future;
     controller.animateCamera(CameraUpdate.newCameraPosition(
       CameraPosition(target: LatLng(lat, lng), zoom: 12),
     ),

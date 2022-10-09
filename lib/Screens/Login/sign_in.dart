@@ -1,10 +1,17 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ehatid_passenger_app/Screens/IntroSlider/intro.dart';
 import 'package:ehatid_passenger_app/Screens/Login/components/forget_pw.dart';
 import 'package:ehatid_passenger_app/Screens/Home/homescreen.dart';
 import 'package:ehatid_passenger_app/Screens/Login/components/register.dart';
 import 'package:ehatid_passenger_app/main_page.dart';
+import 'package:ehatid_passenger_app/map_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:ehatid_passenger_app/Screens/Registration/sign_up.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SignIn extends StatefulWidget {
@@ -17,24 +24,51 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-
   //text controller
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  final FirebaseAuth fAuth = FirebaseAuth.instance;
+  User? currentFirebaseUser;
+
   Future signIn() async {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    await preferences.setInt('initScreen', 1);
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: _emailController.text.trim(),
-      password: _passwordController.text.trim(),
-    ).whenComplete((){
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-            builder: (context) => const MainPage(),
-        ),
-      );
-    });
+    final User? firebaseUser = (
+        await fAuth.signInWithEmailAndPassword(
+          email: _emailController.text.trim(),
+          password: _passwordController.text.trim(),
+        ).catchError((msg){
+          Navigator.pop(context);
+          Fluttertoast.showToast(msg: "Error: " + msg.toString());
+        })
+    ).user;
+
+    if(firebaseUser != null)
+    {
+      DatabaseReference passengersRef = FirebaseDatabase.instance.ref().child("passengers");
+      passengersRef.child(firebaseUser.uid).once().then((passengersKey)
+      {
+        final snap = passengersKey.snapshot;
+        if(snap.value != null)
+        {
+          currentFirebaseUser = firebaseUser;
+          Fluttertoast.showToast(msg: "Login Successful.");
+          Timer(const Duration(seconds: 3),(){
+            Navigator.push(context, MaterialPageRoute(builder: (c)=>  MapSample()));
+          });
+        }
+        else
+        {
+          Fluttertoast.showToast(msg: "No record exist with this email.");
+          //fAuth.signOut();
+          //Navigator.push(context, MaterialPageRoute(builder: (c)=>  SignUp()));
+        }
+      });
+    }
+    else
+    {
+      Navigator.pop(context);
+      Fluttertoast.showToast(msg: "Error Occurred during Login.");
+    }
   }
 
   @override
@@ -233,5 +267,52 @@ class _SignInState extends State<SignIn> {
     setState(() {
       _isHidden = !_isHidden;
     });
+  }
+}
+
+
+class ProgressDialog extends StatelessWidget
+{
+  String? message;
+  ProgressDialog({this.message});
+
+
+  @override
+  Widget build(BuildContext context)
+  {
+    return Dialog(
+      backgroundColor: Colors.black54,
+      child: Container(
+        margin: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+
+              const SizedBox(width: 6.0,),
+
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.green),
+              ),
+
+              const SizedBox(width: 26.0,),
+
+              Text(
+                message!,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 12,
+                ),
+              ),
+
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

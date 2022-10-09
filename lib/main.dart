@@ -1,6 +1,8 @@
+import 'package:ehatid_passenger_app/Screens/IntroSlider/intro.dart';
 import 'package:ehatid_passenger_app/Screens/Welcome/welcome_screen.dart';
 import 'package:ehatid_passenger_app/constants.dart';
 import 'package:ehatid_passenger_app/Screens/Home/homescreen.dart';
+import 'package:ehatid_passenger_app/map_page.dart';
 import 'package:ehatid_passenger_app/navigation.dart';
 import 'package:ehatid_passenger_app/test_map.dart';
 import 'package:ehatid_passenger_app/testing_page.dart';
@@ -42,8 +44,8 @@ class MyApp extends StatelessWidget {
           initialRoute: initScreen == 0 ? 'introslider' : 'homepage',
           // paltan ang login ng homepage
           routes: {
-            'homepage': (context) => Navigation(),
-            'introslider': (context) => WelcomeScreen(),
+            'homepage': (context) => MapSample(),
+            'introslider': (context) => MapSample(),
           },
         );
       },
