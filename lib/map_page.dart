@@ -2,12 +2,15 @@ import 'dart:async';
 import 'dart:math';
 import 'package:ehatid_passenger_app/Screens/Wallet/wallet.dart';
 import 'package:ehatid_passenger_app/accept_decline.dart';
+import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:marquee/marquee.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -63,7 +66,7 @@ class MapSampleState extends State<MapSample> {
 
     newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-    String humanReadableAddress = await AssistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!);
+    String humanReadableAddress = await AssistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!, context);
     print("this is your address =" + humanReadableAddress);
   }
 
@@ -198,64 +201,96 @@ class MapSampleState extends State<MapSample> {
               Row(
                 children: [
                   Expanded(
-                    child: Column(
-                      children: <Widget> [
-                        TextFormField(
-                          controller: _originController,
-                          //textCapitalization: TextCapitalization.words,
-                          onChanged: (value) {
-                            print(value);
-                          },
-                        decoration: InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Color(0xFFFED90F),),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        hintText: "Current Location",
-                        hintStyle: TextStyle( color: Color(0xbc000000),
-                          fontSize: 15,
-                          fontFamily: "Montserrat",
-                          fontWeight: FontWeight.w400,),
-                        fillColor: Colors.white,
-                        filled: true,
-                            suffixIcon: Icon(Icons.location_pin,  color: Color(0xffCCCCCC))
-                        ),
-                        ),
-                        SizedBox(height: Adaptive.h(1.5),),
-                        TextFormField(
-                          controller: _destinationController,
-                          textCapitalization: TextCapitalization.words,
-                          onChanged: (value) {
-                            print(value);
-                          },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: Adaptive.w(3),),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget> [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.location_pin,  color: Color(0xffCCCCCC)),
+                              SizedBox(width: Adaptive.w(1.5),),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text("From",
+                                  style: TextStyle(color: Color(0xbc000000),
+                                    fontSize: 15,
+                                    fontFamily: "Montserrat",
+                                    fontWeight: FontWeight.w400,)),
+                            ],
+                            ),
+                            ],
+
+                          ),
+                          /**TextFormField(
+                            controller: _originController,
+                            //textCapitalization: TextCapitalization.words,
+                            onChanged: (value) {
+                              print(value);
+                            },
                           decoration: InputDecoration(
                               isDense: true,
                               contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Colors.white),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: Color(0xFFFED90F),),
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            hintText: "Destination",
-                            hintStyle: TextStyle( color: Color(0xbc000000),
-                              fontSize: 15,
-                              fontFamily: "Montserrat",
-                              fontWeight: FontWeight.w400,),
-                            fillColor: Colors.white,
-                            filled: true,
-                            suffixIcon: Icon(Icons.storefront,  color: Color(0xffCCCCCC))
-                        ),
-                        ),
-                      ],
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFFFED90F),),
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          Provider.of<AppInfo>(context).userPickUpLocation != null
+                             ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
+                              : "your current location",
+                          hintStyle: TextStyle( color: Color(0xbc000000),
+                            fontSize: 15,
+                            fontFamily: "Montserrat",
+                            fontWeight: FontWeight.w400,),
+                          fillColor: Colors.white,
+                          filled: true,
+                              suffixIcon: Icon(Icons.location_pin,  color: Color(0xffCCCCCC))
+                          ),
+                          ),**/
+                          Text(Provider.of<AppInfo>(context).userPickUpLocation != null
+                              ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
+                              : "your current location",
+                              textAlign: TextAlign.left,
+                              style: TextStyle(color: Color(0xbc000000),
+                                fontSize: 15,
+                                fontFamily: "Montserrat",
+                                fontWeight: FontWeight.w400,)),
+                          SizedBox(height: Adaptive.h(1.5),),
+                          TextFormField(
+                            controller: _destinationController,
+                            textCapitalization: TextCapitalization.words,
+                            onChanged: (value) {
+                              print(value);
+                            },
+                            decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Color(0xFFFED90F),),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              hintText: "Destination",
+                              hintStyle: TextStyle( color: Color(0xbc000000),
+                                fontSize: 15,
+                                fontFamily: "Montserrat",
+                                fontWeight: FontWeight.w400,),
+                              fillColor: Colors.white,
+                              filled: true,
+                              suffixIcon: Icon(Icons.storefront,  color: Color(0xffCCCCCC))
+                          ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                  /** IconButton(
