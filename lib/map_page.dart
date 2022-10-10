@@ -201,76 +201,45 @@ class MapSampleState extends State<MapSample> {
               Row(
                 children: [
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: Adaptive.w(3),),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget> [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.location_pin,  color: Color(0xffCCCCCC)),
-                              SizedBox(width: Adaptive.w(1.5),),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("From",
-                                  style: TextStyle(color: Color(0xbc000000),
-                                    fontSize: 15,
-                                    fontFamily: "Montserrat",
-                                    fontWeight: FontWeight.w400,)),
-                            ],
-                            ),
-                            ],
-
-                          ),
-                          /**TextFormField(
-                            controller: _originController,
-                            //textCapitalization: TextCapitalization.words,
-                            onChanged: (value) {
-                              print(value);
-                            },
+                    child: Column(
+                      children: <Widget> [
+                        TextFormField(
+                          readOnly: true,
+                          //controller: _originController,
+                          //textCapitalization: TextCapitalization.words,
                           decoration: InputDecoration(
                               isDense: true,
                               contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Colors.white),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: Color(0xFFFED90F),),
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          Provider.of<AppInfo>(context).userPickUpLocation != null
-                             ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
-                              : "your current location",
-                          hintStyle: TextStyle( color: Color(0xbc000000),
-                            fontSize: 15,
-                            fontFamily: "Montserrat",
-                            fontWeight: FontWeight.w400,),
-                          fillColor: Colors.white,
-                          filled: true,
-                              suffixIcon: Icon(Icons.location_pin,  color: Color(0xffCCCCCC))
-                          ),
-                          ),**/
-                          Text(Provider.of<AppInfo>(context).userPickUpLocation != null
-                              ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
-                              : "your current location",
-                              textAlign: TextAlign.left,
-                              style: TextStyle(color: Color(0xbc000000),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Colors.white),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(color: Color(0xFFFED90F),),
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              hintText: Provider.of<AppInfo>(context).userPickUpLocation != null
+                                  ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
+                                  : "Current location",
+                              hintStyle: TextStyle( color: Color(0xbc000000),
                                 fontSize: 15,
                                 fontFamily: "Montserrat",
-                                fontWeight: FontWeight.w400,)),
-                          SizedBox(height: Adaptive.h(1.5),),
-                          TextFormField(
-                            controller: _destinationController,
-                            textCapitalization: TextCapitalization.words,
-                            onChanged: (value) {
-                              print(value);
-                            },
-                            decoration: InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                                fontWeight: FontWeight.w400,),
+                              fillColor: Colors.white,
+                              filled: true,
+                              suffixIcon: Icon(Icons.location_pin,  color: Color(0xffCCCCCC))
+                          ),
+                        ),
+                        SizedBox(height: Adaptive.h(1.5),),
+                        TextFormField(
+                          controller: _destinationController,
+                          textCapitalization: TextCapitalization.words,
+                          onChanged: (value) {
+                            print(value);
+                          },
+                          decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(color: Colors.white),
                                 borderRadius: BorderRadius.circular(15),
@@ -288,28 +257,26 @@ class MapSampleState extends State<MapSample> {
                               filled: true,
                               suffixIcon: Icon(Icons.storefront,  color: Color(0xffCCCCCC))
                           ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                 /** IconButton(
-                    onPressed: () async {
+                  /** IconButton(
+                      onPressed: () async {
                       var directions = await LocationService().getDirections(
-                          _originController.text,
-                          _destinationController.text
+                      _originController.text,
+                      _destinationController.text
                       );
                       _goToPlace(
-                        directions['start_location']['lat'],
-                        directions['start_location']['lng'],
-                        directions['bounds_ne'],
-                        directions['bounds_sw'],
+                      directions['start_location']['lat'],
+                      directions['start_location']['lng'],
+                      directions['bounds_ne'],
+                      directions['bounds_sw'],
                       );
-
                       _setPolyline(directions['polyline_decoded']);
-                    },
-                    icon: Icon(Icons.search),
-                  ),**/
+                      },
+                      icon: Icon(Icons.search),
+                      ),**/
                 ],
               ),
               SizedBox(height: Adaptive.h(1.5),),
@@ -334,16 +301,15 @@ class MapSampleState extends State<MapSample> {
                     directions['bounds_ne'],
                     directions['bounds_sw'],
                   );
-
                   _setPolyline(directions['polyline_decoded']);
                   Timer(const Duration(seconds: 4), (){
                     //after 6 seconds
                     showDialog(
-                      context: context,
+                        context: context,
                         builder: (context) {
                           Future.delayed(Duration(seconds: 3), () {
                             Navigator.pushReplacement(context, MaterialPageRoute(
-                                builder: (_) => AcceptDecline(),
+                              builder: (_) => AcceptDecline(),
                             ),
                             );});
                           return BookingSuccessDialog();
@@ -359,6 +325,7 @@ class MapSampleState extends State<MapSample> {
       ),
     );
   }
+
 
   /**@override
   Widget build(BuildContext context) {
