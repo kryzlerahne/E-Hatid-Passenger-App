@@ -234,12 +234,17 @@ class MapSampleState extends State<MapSample> {
                         ),
                         SizedBox(height: Adaptive.h(1.5),),
                         TextFormField(
-                          controller: _destinationController,
-                          textCapitalization: TextCapitalization.words,
+                          //controller: _destinationController,
+                          //textCapitalization: TextCapitalization.words,
                           readOnly: true,
                           onTap: ()
                           {
-                            Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
+                           var responseFromSearchScreen = Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
+
+                           if(responseFromSearchScreen == "Obtained Destination Address")
+                             {
+                               //Draw Routes and polyline
+                             }
                           },
                           decoration: InputDecoration(
                               isDense: true,
@@ -252,7 +257,9 @@ class MapSampleState extends State<MapSample> {
                                 borderSide: BorderSide(color: Color(0xFFFED90F),),
                                 borderRadius: BorderRadius.circular(15),
                               ),
-                              hintText: "Destination",
+                              hintText:  Provider.of<AppInfo>(context).userDropOffLocation != null
+                                  ? Provider.of<AppInfo>(context).userDropOffLocation!.locationName!
+                                  : "Destination",
                               hintStyle: TextStyle( color: Color(0xbc000000),
                                 fontSize: 15,
                                 fontFamily: "Montserrat",
