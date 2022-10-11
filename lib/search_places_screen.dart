@@ -96,17 +96,17 @@ class _SearchPlacesScreenState extends State<SearchPlacesScreen>
                       )
                     ],
                   ),
-                  SizedBox(height: Adaptive.h(2),),
+                  SizedBox(height: Adaptive.h(1),),
                   Row(
                     children: [
                       Icon(
                         Icons.adjust_sharp,
                         color: Colors.white,
                       ),
-                      SizedBox(width: Adaptive.w(5),),
+                      SizedBox(width: Adaptive.h(3),),
                       Expanded(
                         child: Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.all(7.0),
                           child: TextField(
                             onChanged: (valueTyped)
                             {

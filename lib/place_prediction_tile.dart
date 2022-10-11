@@ -7,6 +7,7 @@ import 'package:ehatid_passenger_app/request_assistant.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:provider/provider.dart';
 
+
 class PlacePredictionTileDesign extends StatelessWidget
 {
   final PredictedPlaces? predictedPlaces;
@@ -18,7 +19,7 @@ class PlacePredictionTileDesign extends StatelessWidget
     showDialog(
         context: context,
         builder: (BuildContext context) => ProgressDialog(
-          message: "Setting up drop-off, Please wait...",
+          message: "Setting up drop off, Please wait..",
         ),
     );
 
