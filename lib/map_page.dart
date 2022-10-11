@@ -4,6 +4,7 @@ import 'package:ehatid_passenger_app/Screens/Wallet/wallet.dart';
 import 'package:ehatid_passenger_app/accept_decline.dart';
 import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/location_service.dart';
+import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -207,6 +208,7 @@ class MapSampleState extends State<MapSample> {
                           readOnly: true,
                           //controller: _originController,
                           //textCapitalization: TextCapitalization.words,
+                          enabled: false,
                           decoration: InputDecoration(
                               isDense: true,
                               contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
@@ -234,8 +236,10 @@ class MapSampleState extends State<MapSample> {
                         TextFormField(
                           controller: _destinationController,
                           textCapitalization: TextCapitalization.words,
-                          onChanged: (value) {
-                            print(value);
+                          readOnly: true,
+                          onTap: ()
+                          {
+                            Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
                           },
                           decoration: InputDecoration(
                               isDense: true,
