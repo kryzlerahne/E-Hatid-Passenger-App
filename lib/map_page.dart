@@ -32,10 +32,18 @@ class MapSampleState extends State<MapSample> {
     zoom: 14.4746,
   );
 
+  GlobalKey<ScaffoldState> sKey = GlobalKey<ScaffoldState>();
+
   Position? userCurrentPosition;
   var geoLocator = Geolocator();
 
   LocationPermission? _locationPermission;
+
+  List<LatLng> pLineCoOrdinatesList = [];
+  Set<Polyline> polyLineSet = {};
+
+  Set<Marker> markersSet = {};
+  Set<Circle> circlesSet = {};
 
   checkIfLocationPermissionAllowed() async
   {
@@ -50,9 +58,9 @@ class MapSampleState extends State<MapSample> {
   locateUserPosition() async {
     Position cPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     userCurrentPosition = cPosition;
-    
+
     LatLng latLngPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
-    
+
     CameraPosition cameraPosition = CameraPosition(target: latLngPosition, zoom: 14);
 
     newGoogleMapController!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
@@ -100,6 +108,9 @@ class MapSampleState extends State<MapSample> {
               zoomGesturesEnabled: true,
               zoomControlsEnabled: true,
               initialCameraPosition: _kGooglePlex,
+              polylines: polyLineSet,
+              markers: markersSet,
+              circles: circlesSet,
               onMapCreated: (GoogleMapController controller) {
                 _controllerGoogleMap.complete(controller);
                 newGoogleMapController = controller;
@@ -246,16 +257,115 @@ class MapSampleState extends State<MapSample> {
 
     var sourceLatLng = LatLng(sourcePosition!.locationLatitude!, sourcePosition!.locationLongitude!);
     var destinationLatLng = LatLng(destinationPosition!.locationLatitude!, destinationPosition!.locationLongitude!);
-  
+
     BookingSuccessDialog();
-    
+
     var directionDetailsInfo = await AssistantMethods.obtainOriginToDestinationDirectionDetails(sourceLatLng, destinationLatLng);
 
-    Navigator.pop(context);
+    //Navigator.of(context, rootNavigator: true).pop(context);
 
     print("These are points: ");
     print(directionDetailsInfo!.e_points!);
 
+    //Decoding of points
+
+    PolylinePoints pPoints = PolylinePoints();
+    List<PointLatLng> decodedPolyLinePointsResultList = pPoints.decodePolyline(directionDetailsInfo!.e_points!);
+
+    pLineCoOrdinatesList.clear();
+
+    if(decodedPolyLinePointsResultList.isNotEmpty)
+      {
+        decodedPolyLinePointsResultList.forEach((PointLatLng pointLatLng)
+        {
+          pLineCoOrdinatesList.add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+        });
+      }
+
+    polyLineSet.clear();
+
+     setState(() {
+       Polyline polyline = Polyline(
+         color: Colors.red,
+         polylineId: const PolylineId("PolylineID"),
+         jointType: JointType.round,
+         points: pLineCoOrdinatesList,
+         startCap: Cap.roundCap,
+         endCap: Cap.roundCap,
+         geodesic: true,
+         width: 3,
+       );
+
+       polyLineSet.add(polyline);
+     });
+
+     LatLngBounds boundsLatLng;
+     if(sourceLatLng.latitude > destinationLatLng.latitude && sourceLatLng.longitude > destinationLatLng.longitude)
+     {
+        boundsLatLng = LatLngBounds(southwest: destinationLatLng, northeast: sourceLatLng);
+     }
+     else if(sourceLatLng.longitude > destinationLatLng.longitude)
+     {
+       boundsLatLng = LatLngBounds(
+           southwest: LatLng(sourceLatLng.latitude, destinationLatLng.longitude),
+           northeast: LatLng(destinationLatLng.latitude, sourceLatLng.longitude),
+       );
+     }
+     else if(sourceLatLng.latitude > destinationLatLng.latitude)
+     {
+       boundsLatLng = LatLngBounds(
+         southwest: LatLng(destinationLatLng.latitude, sourceLatLng.longitude),
+         northeast: LatLng(sourceLatLng.latitude, destinationLatLng.longitude),
+       );
+     }
+     else
+       {
+         boundsLatLng = LatLngBounds(southwest: sourceLatLng, northeast: destinationLatLng);
+       }
+
+     newGoogleMapController!.animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
+
+     Marker originMarker = Marker(
+        markerId: const MarkerId("originID"),
+       infoWindow: InfoWindow(title: sourcePosition.locationName, snippet: "Origin"),
+       position: sourceLatLng,
+       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
+     );
+
+    Marker destinationMarker = Marker(
+      markerId: const MarkerId("destinationID"),
+      infoWindow: InfoWindow(title: destinationPosition.locationName, snippet: "Destination"),
+      position: destinationLatLng,
+      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+    );
+
+    setState(() {
+      markersSet.add(originMarker);
+      markersSet.add(destinationMarker);
+    });
+
+    Circle originCircle = Circle(
+      circleId: const CircleId("originID"),
+      fillColor: Colors.green,
+      radius: 12,
+      strokeWidth: 3,
+      strokeColor: Colors.white,
+      center: sourceLatLng,
+    );
+
+    Circle destinationCircle = Circle(
+      circleId: const CircleId("destinationID"),
+      fillColor: Colors.purple,
+      radius: 12,
+      strokeWidth: 3,
+      strokeColor: Colors.white,
+      center: destinationLatLng,
+    );
+
+    setState(() {
+      circlesSet.add(originCircle);
+      circlesSet.add(destinationCircle);
+    });
   }
 }
 
