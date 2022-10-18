@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:ehatid_passenger_app/assistant_methods.dart';
+import 'package:ehatid_passenger_app/global.dart';
 import 'package:ehatid_passenger_app/navigation_screen.dart';
 import 'package:ehatid_passenger_app/tripInvoice.dart';
 import 'package:flutter/material.dart';
@@ -218,13 +220,14 @@ class PanelWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   //SizedBox(height: 20,),
-                  Text("192m away",
+                  Text(tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
                     style: TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.w600,color: Color(0XFFFFBA4C)),
                   ),
-                  Text("15 mins",
+                  Text(
+                    tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.duration_text! : "",
                     style: TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.w600, color: Color(0XFFFFBA4C)),
                   ),
-                  Text("P 50.00",
+                  Text(AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
                     style: TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.w600, color: Color(0XFFFFBA4C)),
                   ),
                 ],

@@ -78,6 +78,18 @@ class AssistantMethods
 
     return directionDetailsInfo;
   }
+
+  static double calculateFareAmountFromOriginToDestination(DirectionDetailsInfo directionDetailsInfo)
+  {
+    double timeTraveledFareAmountPerMinute = (directionDetailsInfo.duration_value! / 60) * 0.1; //Per minute magkano ang ichacharge mo
+    double distanceTraveledFareAmountPerKilometer = (directionDetailsInfo.distance_value! / 2000) * 50;
+
+    //If 1 USD = 58 peso
+    double totalFareAmount = timeTraveledFareAmountPerMinute + distanceTraveledFareAmountPerKilometer;
+   // double localCurrencyTotalFare = totalFareAmount * 58; for conversion
+
+    return double.parse(distanceTraveledFareAmountPerKilometer.toStringAsFixed(1)); //Round off
+  }
 }
 
 class UserModel

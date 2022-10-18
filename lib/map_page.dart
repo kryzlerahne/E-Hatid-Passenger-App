@@ -2,19 +2,24 @@ import 'dart:async';
 import 'dart:math';
 import 'package:ehatid_passenger_app/Screens/Wallet/wallet.dart';
 import 'package:ehatid_passenger_app/accept_decline.dart';
+import 'package:ehatid_passenger_app/active_nearby_available_drivers.dart';
 import 'package:ehatid_passenger_app/app_info.dart';
+import 'package:ehatid_passenger_app/direction_details_info.dart';
+import 'package:ehatid_passenger_app/geofire_assistant.dart';
 import 'package:ehatid_passenger_app/location_service.dart';
 import 'package:ehatid_passenger_app/progress_dialog.dart';
 import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:marquee/marquee.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 
 import 'assistant_methods.dart';
 
@@ -45,6 +50,12 @@ class MapSampleState extends State<MapSample> {
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
 
+  bool activeNearbyDriverKeysLoaded = false; //Activedrivers code
+
+  //List<ActiveNearbyAvailableDrivers> onlineNearbyAvailableDriversList = [];
+
+  DirectionDetailsInfo? tripDirectionDetailsInfo;
+
   checkIfLocationPermissionAllowed() async
   {
     _locationPermission = await Geolocator.requestPermission();
@@ -67,6 +78,8 @@ class MapSampleState extends State<MapSample> {
 
     String humanReadableAddress = await AssistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!, context);
     print("this is your address =" + humanReadableAddress);
+
+    initializeGeoFireListener(); //Active Drivers
   }
 
 
@@ -77,6 +90,11 @@ class MapSampleState extends State<MapSample> {
     checkIfLocationPermissionAllowed();
   }
 
+  saveRideRequestInformation()
+  {
+    //save the Ride Request Information
+
+  }
 
   @override
   Widget build(BuildContext context)
@@ -234,12 +252,22 @@ class MapSampleState extends State<MapSample> {
                     borderRadius: BorderRadius.circular(50)
                 ),
                 minWidth: Adaptive.w(40),
-                child: Text("Continue", style: TextStyle( color: Colors.white,
+                child: Text("Request a Ride", style: TextStyle( color: Colors.white,
                   fontSize: 15,
                   fontFamily: "Montserrat",
                   fontWeight: FontWeight.w600,),),
                 color: Color(0XFF0CBC8B),
-                onPressed: () async {
+                onPressed: () async
+                {
+                  if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
+                    {
+                      //saveRideRequestInformation();
+                      Navigator.push(context, MaterialPageRoute(builder: (c)=> AcceptDecline()));
+                    }
+                  else
+                    {
+                      Fluttertoast.showToast(msg: "Please select your destination location first.");
+                    }
                 },
               ),
               SizedBox(height: Adaptive.h(1.5),),
@@ -261,6 +289,10 @@ class MapSampleState extends State<MapSample> {
     BookingSuccessDialog();
 
     var directionDetailsInfo = await AssistantMethods.obtainOriginToDestinationDirectionDetails(sourceLatLng, destinationLatLng);
+
+    setState(() {
+      tripDirectionDetailsInfo = directionDetailsInfo;
+    });
 
     //Navigator.of(context, rootNavigator: true).pop(context);
 
@@ -367,9 +399,90 @@ class MapSampleState extends State<MapSample> {
       circlesSet.add(destinationCircle);
     });
   }
+
+  //Section 17: Para Mapalabas ang ACTIVE
+  initializeGeoFireListener() {
+    Geofire.initialize("activeDrivers");
+    Geofire.queryAtLocation(
+        userCurrentPosition!.latitude, userCurrentPosition!.longitude, 1)!
+        .listen((map) {
+      print(map);
+      if (map != null) {
+        var callBack = map['callBack'];
+
+        //latitude will be retrieved from map['latitude']
+        //longitude will be retrieved from map['longitude']
+
+        switch (callBack)
+        {
+          case Geofire.onKeyEntered: //whenever any driver become active or online
+            ActiveNearbyAvailableDrivers activeNearbyAvailableDrivers = ActiveNearbyAvailableDrivers();
+            activeNearbyAvailableDrivers.locationLatitude = map['latitude'];
+            activeNearbyAvailableDrivers.locationLongitude = map['longitude'];
+            activeNearbyAvailableDrivers.driverId = map['key'];
+            GeoFireAssistant.activeNearbyAvailableDriversList.add(activeNearbyAvailableDrivers);
+            if(activeNearbyDriverKeysLoaded == true)
+              {
+                displayActiveDriversOnUsersMap();
+              }
+            break;
+
+          case Geofire.onKeyExited: //whenever any driver become non-active or offline
+            GeoFireAssistant.deleteOfflineDriverFromList(map['key']);
+            break;
+
+          //whenever the driver moves - update driver location
+          case Geofire.onKeyMoved:
+            ActiveNearbyAvailableDrivers activeNearbyAvailableDrivers = ActiveNearbyAvailableDrivers();
+            activeNearbyAvailableDrivers.locationLatitude = map['latitude'];
+            activeNearbyAvailableDrivers.locationLongitude = map['longitude'];
+            activeNearbyAvailableDrivers.driverId = map['key'];
+            GeoFireAssistant.updateActiveNearbyAvailableDriveLocation(activeNearbyAvailableDrivers);
+            displayActiveDriversOnUsersMap();
+            break;
+
+          //display those online drivers on users map
+          case Geofire.onGeoQueryReady:
+            displayActiveDriversOnUsersMap();
+            break;
+        }
+      }
+
+      setState(() {});
+    });
+  }
+
+  displayActiveDriversOnUsersMap()
+  {
+    setState(() {
+      markersSet.clear();
+      circlesSet.clear();
+
+      Set<Marker> driversMarketSet = Set<Marker>();
+
+      for(ActiveNearbyAvailableDrivers eachDriver in GeoFireAssistant.activeNearbyAvailableDriversList)
+      {
+        LatLng eachDriverActivePosition = LatLng(eachDriver.locationLatitude!, eachDriver.locationLongitude!);
+
+        Marker marker = Marker(
+          markerId: MarkerId(eachDriver.driverId!),
+          position: eachDriverActivePosition,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
+          rotation: 360,
+        );
+
+        driversMarketSet.add(marker);
+      }
+
+      setState(() {
+        markersSet = driversMarketSet;
+      });
+    });
+  }
+
 }
 
-class BookingSuccessDialog extends StatelessWidget {
+/**class BookingSuccessDialog extends StatelessWidget {
   final _priceController = TextEditingController();
   BookingSuccessDialog({Key? key}) : super(key: key);
 
@@ -428,4 +541,4 @@ class BookingSuccessDialog extends StatelessWidget {
       ),
     );
   }
-}
+}**/
