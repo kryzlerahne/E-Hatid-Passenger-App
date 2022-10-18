@@ -1,12 +1,17 @@
 import 'package:ehatid_passenger_app/assistant_methods.dart';
 import 'package:ehatid_passenger_app/global.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:smooth_star_rating_nsafe/smooth_star_rating.dart';
 
-class SelectNearestActiveDriversScreen extends StatefulWidget {
-  const SelectNearestActiveDriversScreen({Key? key}) : super(key: key);
+class SelectNearestActiveDriversScreen extends StatefulWidget
+{
+
+  DatabaseReference? referenceRideRequest;
+
+  SelectNearestActiveDriversScreen({this.referenceRideRequest});
 
   @override
   State<SelectNearestActiveDriversScreen> createState() => _SelectNearestActiveDriversScreenState();
@@ -40,6 +45,7 @@ class _SelectNearestActiveDriversScreenState extends State<SelectNearestActiveDr
           onPressed: ()
           {
             //delete or remove ride request from database
+            widget.referenceRideRequest!.remove();
             Navigator.pop(context);
           },
         ),
@@ -88,7 +94,7 @@ class _SelectNearestActiveDriversScreenState extends State<SelectNearestActiveDr
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
+                    tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.duration_text! : "",
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 16.sp,
@@ -98,8 +104,9 @@ class _SelectNearestActiveDriversScreenState extends State<SelectNearestActiveDr
                   ),
                   SizedBox(height: 2.h,),
                   Text(
-                    "",
-                    //AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
+                    //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.duration_text! : "",
+                    //"",
+                    AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
                     style: TextStyle(
                       fontFamily: 'Montserrat',
                       fontSize: 16.sp,

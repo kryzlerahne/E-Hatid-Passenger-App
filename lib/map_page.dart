@@ -59,7 +59,9 @@ class MapSampleState extends State<MapSample> {
 
   List<ActiveNearbyAvailableDrivers> onlineNearbyAvailableDriversList = []; //Ride Request Code
 
-  DirectionDetailsInfo? tripDirectionDetailsInfo;
+  //DirectionDetailsInfo? tripDirectionDetailsInfo;
+
+  DatabaseReference? referenceRideRequest;
 
   checkIfLocationPermissionAllowed() async
   {
@@ -97,7 +99,40 @@ class MapSampleState extends State<MapSample> {
 
   saveRideRequestInformation() //Ride Request Code
   {
-    //save the Ride Request Information
+    //1. save the Ride Request Information
+
+    referenceRideRequest = FirebaseDatabase.instance.ref().child("All Ride Requests").push(); // Creates unique ID
+
+    var originLocation = Provider.of<AppInfo>(context, listen: false).userPickUpLocation;
+    var destinationLocation = Provider.of<AppInfo>(context, listen: false).userDropOffLocation;
+
+    Map originLocationMap =
+    {
+      //key:value
+      "latitude": originLocation!.locationLatitude.toString(),
+      "longitude": originLocation!.locationLongitude.toString(),
+    };
+
+    Map destinationLocationMap =
+    {
+      //key:value
+      "latitude": destinationLocation!.locationLatitude.toString(),
+      "longitude": destinationLocation!.locationLongitude.toString(),
+    };
+
+    Map userInformationMap =
+    {
+      "origin": originLocationMap,
+      "destination": destinationLocationMap,
+      "time": DateTime.now().toString(),
+     // "username": userModelCurrentInfo!.name,
+      //"userId": userModelCurrentInfo!.id,
+      "originAddress": originLocation.humanReadableAddress,
+      "destinationAddress": destinationLocation.humanReadableAddress,
+      "driverId": "waiting",
+    };
+
+    referenceRideRequest!.set(userInformationMap);
 
     onlineNearbyAvailableDriversList = GeoFireAssistant.activeNearbyAvailableDriversList;
     searchNearestOnlineDrivers();
@@ -110,6 +145,7 @@ class MapSampleState extends State<MapSample> {
     if(onlineNearbyAvailableDriversList.length == 0)
       {
         //cancel/delete the ride request
+        referenceRideRequest!.remove();
 
         setState(() {
           polyLineSet.clear();
@@ -127,7 +163,7 @@ class MapSampleState extends State<MapSample> {
     //there are active drivers available
     await retrieveOnlineDriversInformation(onlineNearbyAvailableDriversList);
     
-    Navigator.push(context, MaterialPageRoute(builder: (c)=> SelectNearestActiveDriversScreen()));
+    Navigator.push(context, MaterialPageRoute(builder: (c)=> SelectNearestActiveDriversScreen(referenceRideRequest : referenceRideRequest)));
   }
 
   retrieveOnlineDriversInformation(List onlineNearestDriversList) async
