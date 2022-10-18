@@ -3,6 +3,7 @@ import 'package:ehatid_passenger_app/Screens/Welcome/welcome_screen.dart';
 import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/constants.dart';
 import 'package:ehatid_passenger_app/Screens/Home/homescreen.dart';
+import 'package:ehatid_passenger_app/main_page.dart';
 import 'package:ehatid_passenger_app/map_page.dart';
 import 'package:ehatid_passenger_app/navigation.dart';
 import 'package:ehatid_passenger_app/test_map.dart';

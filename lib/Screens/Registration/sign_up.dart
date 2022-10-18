@@ -1,5 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:ehatid_passenger_app/Screens/Login/components/register.dart';
+import 'package:ehatid_passenger_app/Screens/Login/sign_in.dart';
 import 'package:ehatid_passenger_app/Screens/OTP/otp_verification.dart';
 import 'package:ehatid_passenger_app/main_page.dart';
 import 'package:flutter/material.dart';
@@ -210,7 +211,7 @@ class _SignUpState extends State<SignUp> {
                               Navigator.of(context).pushReplacement(
                                   MaterialPageRoute(
                                       builder: (BuildContext context) =>
-                                          MainPage()
+                                          SignIn()
                                   )
                               );
                             },

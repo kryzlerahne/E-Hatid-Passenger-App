@@ -7,8 +7,11 @@ import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/direction_details_info.dart';
 import 'package:ehatid_passenger_app/geofire_assistant.dart';
 import 'package:ehatid_passenger_app/location_service.dart';
+import 'package:ehatid_passenger_app/main.dart';
 import 'package:ehatid_passenger_app/progress_dialog.dart';
 import 'package:ehatid_passenger_app/search_places_screen.dart';
+import 'package:ehatid_passenger_app/select_nearest_active_driver_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -20,8 +23,10 @@ import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'assistant_methods.dart';
+import 'global.dart';
 
 class MapSample extends StatefulWidget {
   @override
@@ -52,7 +57,7 @@ class MapSampleState extends State<MapSample> {
 
   bool activeNearbyDriverKeysLoaded = false; //Activedrivers code
 
-  //List<ActiveNearbyAvailableDrivers> onlineNearbyAvailableDriversList = [];
+  List<ActiveNearbyAvailableDrivers> onlineNearbyAvailableDriversList = []; //Ride Request Code
 
   DirectionDetailsInfo? tripDirectionDetailsInfo;
 
@@ -90,10 +95,55 @@ class MapSampleState extends State<MapSample> {
     checkIfLocationPermissionAllowed();
   }
 
-  saveRideRequestInformation()
+  saveRideRequestInformation() //Ride Request Code
   {
     //save the Ride Request Information
 
+    onlineNearbyAvailableDriversList = GeoFireAssistant.activeNearbyAvailableDriversList;
+    searchNearestOnlineDrivers();
+
+  }
+
+  searchNearestOnlineDrivers() async
+  {
+    //no active driver available
+    if(onlineNearbyAvailableDriversList.length == 0)
+      {
+        //cancel/delete the ride request
+
+        setState(() {
+          polyLineSet.clear();
+          markersSet.clear();
+          circlesSet.clear();
+          pLineCoOrdinatesList.clear();
+        });
+
+        Fluttertoast.showToast(msg: "No Online Nearby Drivers");
+
+
+        return;
+      }
+
+    //there are active drivers available
+    await retrieveOnlineDriversInformation(onlineNearbyAvailableDriversList);
+    
+    Navigator.push(context, MaterialPageRoute(builder: (c)=> SelectNearestActiveDriversScreen()));
+  }
+
+  retrieveOnlineDriversInformation(List onlineNearestDriversList) async
+  {
+    DatabaseReference ref = FirebaseDatabase.instance.ref().child("drivers");
+    for(int i = 0; i<onlineNearestDriversList.length; i++)
+      {
+        await ref.child(onlineNearestDriversList[i].driverId.toString())
+            .once()
+            .then((dataSnapshot)
+        {
+           var driverKeyInfo = dataSnapshot.snapshot.value;
+           dList.add(driverKeyInfo);
+           print("driverKey Info: " + dList.toString());
+        });
+      }
   }
 
   @override
@@ -148,7 +198,9 @@ class MapSampleState extends State<MapSample> {
                 child: Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(
-                    "Hello Kryzle!",
+                    "Hello Ktyzle!",
+                    //AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
+                    //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
                     style: TextStyle(
                         fontFamily: 'Montserrat',
                         color: Colors.white,
@@ -261,8 +313,12 @@ class MapSampleState extends State<MapSample> {
                 {
                   if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
                     {
-                      //saveRideRequestInformation();
-                      Navigator.push(context, MaterialPageRoute(builder: (c)=> AcceptDecline()));
+                      saveRideRequestInformation();
+                      //showDialog(
+                      //  context: context,
+                      //  builder: (context) => ActiveDriver(),
+                      //);
+                      //Navigator.push(context, MaterialPageRoute(builder: (c)=> AcceptDecline()));
                     }
                   else
                     {
@@ -404,7 +460,7 @@ class MapSampleState extends State<MapSample> {
   initializeGeoFireListener() {
     Geofire.initialize("activeDrivers");
     Geofire.queryAtLocation(
-        userCurrentPosition!.latitude, userCurrentPosition!.longitude, 1)!
+        userCurrentPosition!.latitude, userCurrentPosition!.longitude, 10)!
         .listen((map) {
       print(map);
       if (map != null) {

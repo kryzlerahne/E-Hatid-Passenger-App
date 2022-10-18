@@ -88,7 +88,7 @@ class AssistantMethods
     double totalFareAmount = timeTraveledFareAmountPerMinute + distanceTraveledFareAmountPerKilometer;
    // double localCurrencyTotalFare = totalFareAmount * 58; for conversion
 
-    return double.parse(distanceTraveledFareAmountPerKilometer.toStringAsFixed(1)); //Round off
+    return double.parse(totalFareAmount.toStringAsFixed(1)); //Round off
   }
 }
 
