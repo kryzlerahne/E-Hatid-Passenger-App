@@ -1,12 +1,17 @@
+import 'dart:convert';
+
 import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/direction_details_info.dart';
 import 'package:ehatid_passenger_app/directions.dart';
+import 'package:ehatid_passenger_app/global.dart';
 import 'package:ehatid_passenger_app/request_assistant.dart';
+import 'package:ehatid_passenger_app/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class AssistantMethods
 {
@@ -38,13 +43,12 @@ class AssistantMethods
 
     final FirebaseAuth fAuth = FirebaseAuth.instance;
     User? currentFirebaseUser;
-    UserModel? userModelCurrentInfo;
 
     currentFirebaseUser = fAuth.currentUser;
 
     DatabaseReference userRef = FirebaseDatabase.instance
         .ref()
-        .child("users")
+        .child("passengers")
         .child(currentFirebaseUser!.uid);
 
     userRef.once().then((snap)
@@ -52,6 +56,8 @@ class AssistantMethods
       if(snap.snapshot.value != null)
       {
         userModelCurrentInfo = UserModel.fromSnapshot(snap.snapshot);
+        print("name" + userModelCurrentInfo!.first_name.toString());
+        print("id" + userModelCurrentInfo!.id.toString());
       }
     });
   }
@@ -104,22 +110,44 @@ class AssistantMethods
 
 
   }
-}
 
-class UserModel
-{
-  String? phone;
-  String? name;
-  String? id;
-  String? email;
-
-  UserModel({this.phone, this.name, this.id, this.email,});
-
-  UserModel.fromSnapshot(DataSnapshot snap)
+  static sendNotificationToDriverNow(String deviceRegistrationToken, String userRideRequestId, context) async
   {
-    phone = (snap.value as dynamic)["phone"];
-    name = (snap.value as dynamic)["name"];
-    id = snap.key;
-    email = (snap.value as dynamic)["email"];
+    String destinationAddress = userDropOffAddress;
+
+    Map<String, String> headerNotification =
+    {
+      'Content-Type': 'application/json',
+      'Authorization': cloudMessagingServerToken,
+    };
+
+    Map bodyNotification =
+    {
+      "body":"Destination Address: \n $destinationAddress.",
+      "title":"New Trip Request"
+    };
+
+    Map dataMap =
+    {
+      "click_action": "FLUTTER_NOTIFICATION_CLICK",
+      "id": "1",
+      "status": "done",
+      "rideRequestId": userRideRequestId
+    };
+
+    Map officialNotificationFormat =
+    {
+      "notification": bodyNotification,
+      "data": dataMap,
+      "priority": "high",
+      "to": deviceRegistrationToken,
+    };
+
+    var responseNotification = http.post(
+      Uri.parse("https://fcm.googleapis.com/fcm/send"),
+      headers: headerNotification,
+      body: jsonEncode(officialNotificationFormat),
+    );
   }
 }
+

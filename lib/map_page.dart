@@ -13,6 +13,7 @@ import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:ehatid_passenger_app/select_nearest_active_driver_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -55,6 +56,9 @@ class MapSampleState extends State<MapSample> {
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
 
+  String userName = "";
+  String userId = "";
+
   bool activeNearbyDriverKeysLoaded = false; //Activedrivers code
 
   List<ActiveNearbyAvailableDrivers> onlineNearbyAvailableDriversList = []; //Ride Request Code
@@ -86,6 +90,9 @@ class MapSampleState extends State<MapSample> {
     String humanReadableAddress = await AssistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!, context);
     print("this is your address =" + humanReadableAddress);
 
+    //userName = userModelCurrentInfo!.username!;
+    //userId = userModelCurrentInfo!.id!;
+
     initializeGeoFireListener(); //Active Drivers
   }
 
@@ -94,6 +101,7 @@ class MapSampleState extends State<MapSample> {
   void initState() {
     super.initState();
     //_setMarker(LatLng(37.42796133580664, -122.085749655962));
+    AssistantMethods.readCurrentOnlineUserInfo();
     checkIfLocationPermissionAllowed();
   }
 
@@ -125,10 +133,11 @@ class MapSampleState extends State<MapSample> {
       "origin": originLocationMap,
       "destination": destinationLocationMap,
       "time": DateTime.now().toString(),
-     // "username": userModelCurrentInfo!.name,
-      //"userId": userModelCurrentInfo!.id,
-      "originAddress": originLocation.humanReadableAddress,
-      "destinationAddress": destinationLocation.humanReadableAddress,
+      "username": userModelCurrentInfo!.username!,
+      "email": userModelCurrentInfo!.email!,
+      "id": userModelCurrentInfo!.id!,
+      "originAddress": originLocation.locationName,
+      "destinationAddress": destinationLocation.locationName,
       "driverId": "waiting",
     };
 
@@ -163,7 +172,74 @@ class MapSampleState extends State<MapSample> {
     //there are active drivers available
     await retrieveOnlineDriversInformation(onlineNearbyAvailableDriversList);
     
-    Navigator.push(context, MaterialPageRoute(builder: (c)=> SelectNearestActiveDriversScreen(referenceRideRequest : referenceRideRequest)));
+    var response = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SelectNearestActiveDriversScreen(referenceRideRequest : referenceRideRequest)));
+
+    if(response == "driverChoosed")
+    {
+      FirebaseDatabase.instance.ref()
+          .child("drivers")
+          .child(chosenDriverId!)
+          .once()
+          .then((snap)
+      {
+        if(snap.snapshot.value != null)
+          {
+            //send notification to that specific driver
+            sendNotificationToDriverNow(chosenDriverId!);
+
+                        //Reposnse from the driver
+
+            //driver can cancel the RideRequest Push Notifications
+            //(newRideStatus = idle)
+
+            //accept the riderequest push notification
+            //(newRideStatus = accepted)
+
+          }
+          else
+          {
+            Fluttertoast.showToast(msg: "This driver do not exist. Try again.");
+          }
+      });
+    }
+  }
+
+  sendNotificationToDriverNow(String chosenDriverId)
+  {
+    //assign RideRequestId to newRideStatus in Drives Parent node for that specific chosen driver
+    FirebaseDatabase.instance.ref()
+        .child("drivers")
+        .child(chosenDriverId!)
+        .child("newRideStatus")
+        .set(referenceRideRequest!.key);
+
+    //automate the push notifications
+    FirebaseDatabase.instance.ref()
+        .child("drivers")
+        .child(chosenDriverId!)
+        .child("token")
+        .once().then((snap)
+    {
+      if(snap.snapshot.value != null)
+      {
+        String deviceRegistrationToken = snap.snapshot.value.toString();
+
+        //send notification now
+        AssistantMethods.sendNotificationToDriverNow(
+            deviceRegistrationToken,
+            referenceRideRequest!.key.toString(),
+            context,
+        );
+        
+        Fluttertoast.showToast(msg: "Notification sent successfully.");
+      }
+      else
+      {
+        Fluttertoast.showToast(msg: "Please choose another driver.");
+        return;
+      }
+    });
+
   }
 
   retrieveOnlineDriversInformation(List onlineNearestDriversList) async
@@ -195,8 +271,9 @@ class MapSampleState extends State<MapSample> {
         elevation: 0,
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(context);
-          },
+            //Navigator.pop(context);
+            SystemNavigator.pop();
+            },
           icon: Icon(
             Icons.arrow_back,
             color: Colors.white,
@@ -496,7 +573,7 @@ class MapSampleState extends State<MapSample> {
   initializeGeoFireListener() {
     Geofire.initialize("activeDrivers");
     Geofire.queryAtLocation(
-        userCurrentPosition!.latitude, userCurrentPosition!.longitude, 10)!
+        userCurrentPosition!.latitude, userCurrentPosition!.longitude, 20)!
         .listen((map) {
       print(map);
       if (map != null) {

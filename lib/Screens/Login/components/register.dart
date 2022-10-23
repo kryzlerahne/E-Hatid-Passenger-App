@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ehatid_passenger_app/Screens/IntroSlider/intro.dart';
 import 'package:ehatid_passenger_app/Screens/Login/sign_in.dart';
+import 'package:ehatid_passenger_app/navigation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -71,7 +72,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       currentFirebaseUser = firebaseUser;
       Fluttertoast.showToast(msg: "Account has been Created.");
-      Navigator.push(context, MaterialPageRoute(builder: (c)=> Wallet()));
+      Navigator.push(context, MaterialPageRoute(builder: (c)=> Navigation()));
     }
     else
     {

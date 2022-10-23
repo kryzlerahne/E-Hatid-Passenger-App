@@ -1,6 +1,7 @@
 import 'package:ehatid_passenger_app/Screens/Login/sign_in.dart';
 import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/directions.dart';
+import 'package:ehatid_passenger_app/global.dart';
 import 'package:ehatid_passenger_app/predicted_places.dart';
 import 'package:flutter/material.dart';
 import 'package:ehatid_passenger_app/request_assistant.dart';
@@ -8,12 +9,17 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:provider/provider.dart';
 
 
-class PlacePredictionTileDesign extends StatelessWidget
+class PlacePredictionTileDesign extends StatefulWidget
 {
   final PredictedPlaces? predictedPlaces;
 
   PlacePredictionTileDesign({this.predictedPlaces});
 
+  @override
+  State<PlacePredictionTileDesign> createState() => _PlacePredictionTileDesignState();
+}
+
+class _PlacePredictionTileDesignState extends State<PlacePredictionTileDesign> {
   getPlaceDirectionDetails(String? placeId, context) async
   {
     showDialog(
@@ -41,8 +47,13 @@ class PlacePredictionTileDesign extends StatelessWidget
       directions.locationId = placeId;
       directions.locationLatitude = responseApi["result"]["geometry"]["location"]["lat"];
       directions.locationLongitude = responseApi["result"]["geometry"]["location"]["lng"];
-      
+
       Provider.of<AppInfo>(context, listen: false).updateDropOffLocationAddress(directions);
+
+
+      setState(() {
+        userDropOffAddress = directions.locationName!;
+      });
 
       Navigator.pop(context, "Obtained Destination Address");
     }
@@ -53,7 +64,7 @@ class PlacePredictionTileDesign extends StatelessWidget
     return ElevatedButton(
       onPressed: ()
       {
-        getPlaceDirectionDetails(predictedPlaces!.place_id, context);
+        getPlaceDirectionDetails(widget.predictedPlaces!.place_id, context);
       },
       style: ElevatedButton.styleFrom(
         primary: Color(0xFFFCF7E1),
@@ -73,7 +84,7 @@ class PlacePredictionTileDesign extends StatelessWidget
                 children: [
                   SizedBox(height: Adaptive.h(2),),
                   Text(
-                    predictedPlaces!.main_text!,
+                    widget.predictedPlaces!.main_text!,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle( color: Color(0xbc000000),
                       fontSize: 16,
@@ -82,7 +93,7 @@ class PlacePredictionTileDesign extends StatelessWidget
                   ),
                   SizedBox(height: Adaptive.h(0.5),),
                   Text(
-                    predictedPlaces!.secondary_text!,
+                    widget.predictedPlaces!.secondary_text!,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle( color: Color(0xbc000000),
                       fontSize: 15,

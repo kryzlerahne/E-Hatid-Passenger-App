@@ -3,6 +3,7 @@ import 'package:ehatid_passenger_app/global.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:smooth_star_rating_nsafe/smooth_star_rating.dart';
 
@@ -46,7 +47,9 @@ class _SelectNearestActiveDriversScreenState extends State<SelectNearestActiveDr
           {
             //delete or remove ride request from database
             widget.referenceRideRequest!.remove();
-            Navigator.pop(context);
+            Fluttertoast.showToast(msg: "You have cancelled your ride request.");
+            //Navigator.pop(context);
+            SystemNavigator.pop();
           },
         ),
       ),
@@ -54,67 +57,76 @@ class _SelectNearestActiveDriversScreenState extends State<SelectNearestActiveDr
         itemCount: dList.length,
         itemBuilder: (BuildContext context, int index)
         {
-          return Card(
-            color: Colors.grey,
-            elevation: 3,
-            shadowColor: Colors.green,
-            margin: EdgeInsets.all(8.0),
-            child: ListTile(
-              leading: Padding(
-                padding: const EdgeInsets.only(top: 2.0),
-                child: Icon(
-                  Icons.account_circle_outlined,
-                  size: 26.sp,
-                  color: Color(0xFF777777),
+          return GestureDetector(
+            onTap: ()
+            {
+             setState(() {
+               chosenDriverId = dList[index]["id"].toString();
+             });
+             Navigator.pop(context, "driverChoosed");
+            },
+            child: Card(
+              color: Colors.grey,
+              elevation: 3,
+              shadowColor: Colors.green,
+              margin: EdgeInsets.all(8.0),
+              child: ListTile(
+                leading: Padding(
+                  padding: const EdgeInsets.only(top: 2.0),
+                  child: Icon(
+                    Icons.account_circle_outlined,
+                    size: 26.sp,
+                    color: Color(0xFF777777),
+                  ),
                 ),
-              ),
-              title: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    dList[index]["first_name"],
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 16.sp,
-                      color: Color(0xFF272727),
-                      fontWeight: FontWeight.w500,
+                title: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      dList[index]["first_name"],
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 16.sp,
+                        color: Color(0xFF272727),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                  SmoothStarRating(
-                    rating: 3.5,
-                    color: Colors.black,
-                    borderColor: Colors.black,
-                    allowHalfRating: true,
-                    starCount: 5,
-                    size: 15,
-                  ),
-                ],
-              ),
-              trailing: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.duration_text! : "",
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 16.sp,
-                      color: Color(0xFF272727),
-                      fontWeight: FontWeight.w500,
+                    SmoothStarRating(
+                      rating: 3.5,
+                      color: Colors.black,
+                      borderColor: Colors.black,
+                      allowHalfRating: true,
+                      starCount: 5,
+                      size: 15,
                     ),
-                  ),
-                  SizedBox(height: 2.h,),
-                  Text(
-                    //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.duration_text! : "",
-                    //"",
-                    AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
-                    style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      fontSize: 16.sp,
-                      color: Color(0xFF272727),
-                      fontWeight: FontWeight.w500,
+                  ],
+                ),
+                trailing: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.duration_text! : "",
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 16.sp,
+                        color: Color(0xFF272727),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                    SizedBox(height: 2.h,),
+                    Text(
+                      //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.duration_text! : "",
+                      //"",
+                      AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 16.sp,
+                        color: Color(0xFF272727),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );

@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
             // paltan ang login ng homepage
             routes: {
               'homepage': (context) => MapSample(),
-              'introslider': (context) => MapSample(),
+              'introslider': (context) => MainPage(),
             },
           ),
         );
