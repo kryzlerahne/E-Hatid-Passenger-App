@@ -31,6 +31,7 @@ dependencies:
   marquee: ^2.2.3
 
   flutter_geofire: ^2.0.1
+  animated_text_kit: ^4.2.2
 
   smooth_star_rating_nsafe: ^1.0.0+1
 

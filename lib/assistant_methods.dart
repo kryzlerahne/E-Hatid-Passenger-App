@@ -99,7 +99,7 @@ class AssistantMethods
     else
       {
         double totalFareAmount = 40;
-        return double.parse(totalFareAmount.toStringAsFixed(1));
+        return double.parse(totalFareAmount.toStringAsFixed(2));
       }
 
     //Round off

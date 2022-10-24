@@ -8,6 +8,7 @@ import 'package:ehatid_passenger_app/direction_details_info.dart';
 import 'package:ehatid_passenger_app/geofire_assistant.dart';
 import 'package:ehatid_passenger_app/location_service.dart';
 import 'package:ehatid_passenger_app/main.dart';
+import 'package:ehatid_passenger_app/processing_dialog.dart';
 import 'package:ehatid_passenger_app/progress_dialog.dart';
 import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:ehatid_passenger_app/select_nearest_active_driver_screen.dart';
@@ -28,6 +29,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'assistant_methods.dart';
 import 'global.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 
 class MapSample extends StatefulWidget {
   @override
@@ -38,12 +40,16 @@ class MapSampleState extends State<MapSample> {
   Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
 
+  bool isVisible = true;
+
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(13.7731, 121.0484),
     zoom: 14.4746,
   );
 
   GlobalKey<ScaffoldState> sKey = GlobalKey<ScaffoldState>();
+  double waitingResponseFromDriverContainerHeight = 0;
+  double assignedDriverInfoContainerHeight = 0;
 
   Position? userCurrentPosition;
   var geoLocator = Geolocator();
@@ -59,13 +65,19 @@ class MapSampleState extends State<MapSample> {
   String userName = "";
   String userId = "";
 
-  bool activeNearbyDriverKeysLoaded = false; //Activedrivers code
+  bool activeNearbyDriverKeysLoaded = false; //Active drivers code
 
   List<ActiveNearbyAvailableDrivers> onlineNearbyAvailableDriversList = []; //Ride Request Code
 
   //DirectionDetailsInfo? tripDirectionDetailsInfo;
 
   DatabaseReference? referenceRideRequest;
+  String driverRideStatus = "Your driver is coming.";
+  StreamSubscription<DatabaseEvent>? tripRideRequestInfoStreamSubscription;
+
+  String userRideRequestStatus="";
+  bool requestPositionInfo = true;
+
 
   checkIfLocationPermissionAllowed() async
   {
@@ -143,9 +155,126 @@ class MapSampleState extends State<MapSample> {
 
     referenceRideRequest!.set(userInformationMap);
 
+    tripRideRequestInfoStreamSubscription = referenceRideRequest!.onValue.listen((eventSnap) // getting updates in real time
+    {
+      if(eventSnap.snapshot.value == null)
+        {
+          return;
+        }
+
+      if ((eventSnap.snapshot.value as Map)["driverPlateNum"] != null) //!! GAWING CAR DETAILS/ PLATE NUMBER
+      {
+        setState(() {
+          driverTricDetails = (eventSnap.snapshot.value as Map)["driverPlateNum"].toString();
+        });
+      }
+
+      if ((eventSnap.snapshot.value as Map)["driverPhone"] != null) //!! GET PHONE NUMBER
+          {
+        setState(() {
+          driverPhone = (eventSnap.snapshot.value as Map)["driverPhone"].toString();
+        });
+      }
+
+      if ((eventSnap.snapshot.value as Map)["driverName"] != null) //!! GET FNAME
+          {
+        setState(() {
+          driverName = (eventSnap.snapshot.value as Map)["driverName"].toString();
+        });
+      }
+
+      if((eventSnap.snapshot.value as Map)["status"] != null)
+      {
+        userRideRequestStatus = (eventSnap.snapshot.value as Map)["status"].toString();
+      }
+
+      if((eventSnap.snapshot.value as Map)["driverLocation"] != null)
+      {
+        double driverCurrentPositionLat = double.parse((eventSnap.snapshot.value as Map)["driverLocation"]["latitude"].toString());
+        double driverCurrentPositionLng = double.parse((eventSnap.snapshot.value as Map)["driverLocation"]["longitude"].toString());
+
+        LatLng driverCurrentPositionLatLng = LatLng(driverCurrentPositionLat, driverCurrentPositionLng);
+
+        //when status = accepted
+        if(userRideRequestStatus == "accepted")
+        {
+          updateArrivalTimeToUserPickupLocation(driverCurrentPositionLatLng);
+        }
+
+        //when status = arrived
+        if(userRideRequestStatus == "arrived")
+        {
+          setState(() {
+            driverRideStatus = "Your driver has arrived.";
+          });
+        }
+
+        //when status = onTrip
+        if(userRideRequestStatus == "onTrip")
+        {
+          updateReachingTimeToUserDropOffLocation(driverCurrentPositionLatLng);
+        }
+      }
+    });
+
     onlineNearbyAvailableDriversList = GeoFireAssistant.activeNearbyAvailableDriversList;
     searchNearestOnlineDrivers();
+  }
 
+  updateArrivalTimeToUserPickupLocation(driverCurrentPositionLatLng) async
+  {
+    if(requestPositionInfo = true)
+    {
+      requestPositionInfo = false;
+
+      LatLng userPickupPosition = LatLng(userCurrentPosition!.latitude, userCurrentPosition!.longitude);
+
+      var directionDetailsInfo = await AssistantMethods.obtainOriginToDestinationDirectionDetails(
+        driverCurrentPositionLatLng,
+        userPickupPosition,
+      );
+
+      if(directionDetailsInfo == null)
+      {
+        return;
+      }
+
+      setState(() {
+        driverRideStatus = "Your driver is coming: " + directionDetailsInfo.duration_text.toString();
+      });
+
+      requestPositionInfo = true;
+    }
+  }
+
+  updateReachingTimeToUserDropOffLocation(driverCurrentPositionLatLng) async
+  {
+    if(requestPositionInfo = true)
+    {
+      requestPositionInfo = false;
+
+      var dropOffLocation = Provider.of<AppInfo>(context, listen: false).userDropOffLocation;
+      LatLng userDestinationPosition = LatLng(
+          dropOffLocation!.locationLatitude!,
+          dropOffLocation!.locationLongitude!
+      );
+
+      var directionDetailsInfo = await AssistantMethods.obtainOriginToDestinationDirectionDetails(
+        driverCurrentPositionLatLng,
+        userDestinationPosition,
+      );
+
+      if(directionDetailsInfo == null)
+      {
+        return;
+      }
+
+      setState(() {
+        driverRideStatus = "Going towards your destination: " + directionDetailsInfo.duration_text.toString();
+      });
+
+      requestPositionInfo = true;
+    }
   }
 
   searchNearestOnlineDrivers() async
@@ -187,14 +316,38 @@ class MapSampleState extends State<MapSample> {
             //send notification to that specific driver
             sendNotificationToDriverNow(chosenDriverId!);
 
-                        //Reposnse from the driver
+            //Display Waiting Response from a Driver UI
+            showWaitingResponseFromDriverUI();
 
-            //driver can cancel the RideRequest Push Notifications
-            //(newRideStatus = idle)
+            //Response from the driver
+            FirebaseDatabase.instance.ref()
+                .child("drivers")
+                .child(chosenDriverId!)
+                .child("newRideStatus")
+                .onValue.listen((eventSnapshot)
+            {
+              //driver can cancel the RideRequest Push Notifications
+              //(newRideStatus = idle)
+              if(eventSnapshot.snapshot.value == "idle")
+              {
+                Fluttertoast.showToast(msg: "The driver has cancelled your request. Please choose another driver.");
 
-            //accept the riderequest push notification
-            //(newRideStatus = accepted)
+                Future.delayed(const Duration(milliseconds: 3000), ()
+                {
+                  Fluttertoast.showToast(msg: "Please Restart app now.");
 
+                  SystemNavigator.pop();
+                });
+              }
+
+              //accept the riderequest push notification
+              //(newRideStatus = accepted)
+              if(eventSnapshot.snapshot.value == "accepted")
+              {
+                //design and display ui for displaying driver information
+                showUIForAssignedDriverInfo();
+              }
+            });
           }
           else
           {
@@ -202,6 +355,32 @@ class MapSampleState extends State<MapSample> {
           }
       });
     }
+  }
+
+  showUIForAssignedDriverInfo()
+  {
+    setState(() {
+      waitingResponseFromDriverContainerHeight = 0;
+      assignedDriverInfoContainerHeight = Adaptive.h(30);
+    });
+  }
+
+  showWaitingResponseFromDriverUI()
+  {
+    setState(() {
+      isVisible = !isVisible;
+      waitingResponseFromDriverContainerHeight = Adaptive.h(30);
+
+        showDialog(
+            context: context,
+            builder: (context) {
+              Future.delayed(Duration(seconds: 3), () {
+                Navigator.of(context).pop(true);
+              });
+              return ProcessingBookingDialog();
+            });
+    });
+
   }
 
   sendNotificationToDriverNow(String chosenDriverId)
@@ -300,148 +479,267 @@ class MapSampleState extends State<MapSample> {
               },
             ),
           ),
-          Column(
-            children: [
-              Container(
-                width: Adaptive.w(100),
-                decoration: BoxDecoration(
-                  color: Color(0xFFFED90F),
-                  //borderRadius: BorderRadius.circular(15.0),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Hello Ktyzle!",
-                    //AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
-                    //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
-                    style: TextStyle(
-                        fontFamily: 'Montserrat',
-                        color: Colors.white,
-                        fontSize: 18.sp,
-                        letterSpacing: -1,
-                        fontWeight: FontWeight.bold),
-                    textAlign: TextAlign.center,
+          if (isVisible)
+            Column(
+              children: [
+                Container(
+                  width: Adaptive.w(100),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFED90F),
+                    //borderRadius: BorderRadius.circular(15.0),
                   ),
-                ),
-              ),
-              SizedBox(height: Adaptive.h(1.5),),
-              Text("Where are you heading to?",
-                style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    color: Colors.black,
-                    fontSize: 19.sp,
-                    letterSpacing: -1,
-                    fontWeight: FontWeight.bold),
-                //textAlign: TextAlign.center,
-              ),
-              SizedBox(height: Adaptive.h(1.5),),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      children: <Widget> [
-                        TextFormField(
-                          readOnly: true,
-                          //controller: _originController,
-                          //textCapitalization: TextCapitalization.words,
-                          enabled: false,
-                          decoration: InputDecoration(
-                              isDense: true,
-                              contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Color(0xFFFED90F),),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              hintText: Provider.of<AppInfo>(context).userPickUpLocation != null
-                                  ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
-                                  : "Current location",
-                              hintStyle: TextStyle( color: Color(0xbc000000),
-                                fontSize: 15,
-                                fontFamily: "Montserrat",
-                                fontWeight: FontWeight.w400,),
-                              fillColor: Colors.white,
-                              filled: true,
-                              suffixIcon: Icon(Icons.location_pin,  color: Color(0xffCCCCCC))
-                          ),
-                        ),
-                        SizedBox(height: Adaptive.h(1.5),),
-                        TextFormField(
-                          //controller: _destinationController,
-                          //textCapitalization: TextCapitalization.words,
-                          readOnly: true,
-                          onTap: () async
-                          {
-                           var responseFromSearchScreen = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
-
-                           if(responseFromSearchScreen == "Obtained Destination Address")
-                             {
-                               //Draw Routes and polyline
-                               await drawPolyLineFromSourceToDestination();
-                             }
-                          },
-                          decoration: InputDecoration(
-                              isDense: true,
-                              contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Colors.white),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: Color(0xFFFED90F),),
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              hintText:  Provider.of<AppInfo>(context).userDropOffLocation != null
-                                  ? Provider.of<AppInfo>(context).userDropOffLocation!.locationName!
-                                  : "Destination",
-                              hintStyle: TextStyle( color: Color(0xbc000000),
-                                fontSize: 15,
-                                fontFamily: "Montserrat",
-                                fontWeight: FontWeight.w400,),
-                              fillColor: Colors.white,
-                              filled: true,
-                              suffixIcon: Icon(Icons.storefront,  color: Color(0xffCCCCCC))
-                          ),
-                        ),
-                      ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      "Hello " + userModelCurrentInfo!.username!.toString() + "!"  ,
+                      //AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
+                      //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
+                      style: TextStyle(
+                          fontFamily: 'Montserrat',
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          letterSpacing: -1,
+                          fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                ],
-              ),
-              SizedBox(height: Adaptive.h(1.5),),
-              MaterialButton(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(50)
                 ),
-                minWidth: Adaptive.w(40),
-                child: Text("Request a Ride", style: TextStyle( color: Colors.white,
-                  fontSize: 15,
-                  fontFamily: "Montserrat",
-                  fontWeight: FontWeight.w600,),),
-                color: Color(0XFF0CBC8B),
-                onPressed: () async
-                {
-                  if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
-                    {
-                      saveRideRequestInformation();
-                      //showDialog(
-                      //  context: context,
-                      //  builder: (context) => ActiveDriver(),
-                      //);
-                      //Navigator.push(context, MaterialPageRoute(builder: (c)=> AcceptDecline()));
-                    }
-                  else
-                    {
-                      Fluttertoast.showToast(msg: "Please select your destination location first.");
-                    }
-                },
+                SizedBox(height: Adaptive.h(1.5),),
+                Text("Where are you heading to?",
+                  style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.black,
+                      fontSize: 19.sp,
+                      letterSpacing: -1,
+                      fontWeight: FontWeight.bold),
+                  //textAlign: TextAlign.center,
+                ),
+                SizedBox(height: Adaptive.h(1.5),),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: <Widget> [
+                          TextFormField(
+                            readOnly: true,
+                            //controller: _originController,
+                            //textCapitalization: TextCapitalization.words,
+                            enabled: false,
+                            decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Color(0xFFFED90F),),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                hintText: Provider.of<AppInfo>(context).userPickUpLocation != null
+                                    ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
+                                    : "Current location",
+                                hintStyle: TextStyle( color: Color(0xbc000000),
+                                  fontSize: 15,
+                                  fontFamily: "Montserrat",
+                                  fontWeight: FontWeight.w400,),
+                                fillColor: Colors.white,
+                                filled: true,
+                                suffixIcon: Icon(Icons.location_pin,  color: Color(0xffCCCCCC))
+                            ),
+                          ),
+                          SizedBox(height: Adaptive.h(1.5),),
+                          TextFormField(
+                            //controller: _destinationController,
+                            //textCapitalization: TextCapitalization.words,
+                            readOnly: true,
+                            onTap: () async
+                            {
+                             var responseFromSearchScreen = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
+
+                             if(responseFromSearchScreen == "Obtained Destination Address")
+                               {
+                                 //Draw Routes and polyline
+                                 await drawPolyLineFromSourceToDestination();
+                               }
+                            },
+                            decoration: InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Colors.white),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: Color(0xFFFED90F),),
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                hintText:  Provider.of<AppInfo>(context).userDropOffLocation != null
+                                    ? Provider.of<AppInfo>(context).userDropOffLocation!.locationName!
+                                    : "Destination",
+                                hintStyle: TextStyle( color: Color(0xbc000000),
+                                  fontSize: 15,
+                                  fontFamily: "Montserrat",
+                                  fontWeight: FontWeight.w400,),
+                                fillColor: Colors.white,
+                                filled: true,
+                                suffixIcon: Icon(Icons.storefront,  color: Color(0xffCCCCCC))
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: Adaptive.h(1.5),),
+                MaterialButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50)
+                  ),
+                  minWidth: Adaptive.w(40),
+                  child: Text("Request a Ride", style: TextStyle( color: Colors.white,
+                    fontSize: 15,
+                    fontFamily: "Montserrat",
+                    fontWeight: FontWeight.w600,),),
+                  color: Color(0XFF0CBC8B),
+                  onPressed: () async
+                  {
+                    if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
+                      {
+                        saveRideRequestInformation();
+                        //showDialog(
+                        //  context: context,
+                        //  builder: (context) => ActiveDriver(),
+                        //);
+                        //Navigator.push(context, MaterialPageRoute(builder: (c)=> AcceptDecline()));
+                      }
+                    else
+                      {
+                        Fluttertoast.showToast(msg: "Please select your destination location first.");
+                      }
+                  },
+                ),
+                SizedBox(height: Adaptive.h(1.5),),
+              ],
+            ),
+
+          //ui for waiting response from the driver
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: waitingResponseFromDriverContainerHeight,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFED90F),
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(20),
+                  topLeft: Radius.circular(20),
+                ),
               ),
-              SizedBox(height: Adaptive.h(1.5),),
-            ],
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Center(
+                  child: Text("Please wait...",
+                  style: TextStyle( color: Colors.white,
+                    fontSize: 15,
+                    fontFamily: "Montserrat",
+                    fontWeight: FontWeight.w600,),
+                  ),
+                ),
+              ),
+            ),
           ),
+
+          //ui for displaying assigned driver info
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: assignedDriverInfoContainerHeight,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEBE5D8),
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(20),
+                  topLeft: Radius.circular(20),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(15.0),
+                child:Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Text(driverRideStatus,
+                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: Adaptive.h(2),
+                    ),
+                    Divider(
+                      height: 0.5.h,
+                      thickness: 2,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(
+                      height: Adaptive.h(2),
+                    ),
+                    Center(
+                      child: Text(driverName,
+                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: Adaptive.h(0.5),
+                    ),
+                    Center(
+                      child: Text(driverTricDetails,
+                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: Adaptive.h(2),
+                    ),
+                    Divider(
+                      height: 0.5.h,
+                      thickness: 2,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(
+                      height: Adaptive.h(1),
+                    ),
+                    Center(
+                      child: ElevatedButton.icon(
+                        onPressed: ()
+                        {
+
+                        },
+                        style: ElevatedButton.styleFrom(
+                          primary:  Color(0xFF0CBC8B),
+                        ),
+                        icon: Icon(
+                          Icons.call,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                        label: Text(
+                          "Call Driver",
+                          style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
         ],
       ),
     );
@@ -651,7 +949,7 @@ class MapSampleState extends State<MapSample> {
 
 }
 
-/**class BookingSuccessDialog extends StatelessWidget {
+class BookingSuccessDialog extends StatelessWidget {
   final _priceController = TextEditingController();
   BookingSuccessDialog({Key? key}) : super(key: key);
 
@@ -710,4 +1008,4 @@ class MapSampleState extends State<MapSample> {
       ),
     );
   }
-}**/
+}
