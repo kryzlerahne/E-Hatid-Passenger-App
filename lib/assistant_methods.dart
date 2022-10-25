@@ -196,8 +196,12 @@ class AssistantMethods
       {
         var eachTripHistory = TripsHistoryModel.fromSnapshot(snap.snapshot);
 
-        //update OverAllTrips History Data
-        Provider.of<AppInfo>(context, listen: false).updateOverAllTripsHistoryInformation(eachTripHistory);
+        if((snap.snapshot.value as Map)["status"] == "ended")
+        {
+          //update or add each history to OverAllTrips History Data List
+          Provider.of<AppInfo>(context, listen: false).updateOverAllTripsHistoryInformation(eachTripHistory);
+        }
+
       });
     }
   }

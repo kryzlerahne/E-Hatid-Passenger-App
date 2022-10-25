@@ -11,6 +11,7 @@ import 'package:ehatid_passenger_app/accept_decline.dart';
 import 'package:ehatid_passenger_app/map_page.dart';
 import 'package:ehatid_passenger_app/navigation_screen.dart';
 import 'package:ehatid_passenger_app/order_traking_page.dart';
+import 'package:ehatid_passenger_app/trips_history_screen.dart';
 import 'package:flutter/material.dart';
 
 class Navigation extends StatefulWidget {
@@ -29,7 +30,7 @@ class _NavigationState extends State<Navigation> {
 
   var myindex = 0;
 
-  var PagesAll = [MapSample(),Wallet(),AcceptDecline(),FavoritePage()];
+  var PagesAll = [MapSample(),Wallet(),TripsHistoryScreen(),FavoritePage()];
 
   @override
   Widget build(BuildContext context) {

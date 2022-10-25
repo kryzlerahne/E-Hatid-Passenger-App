@@ -7,6 +7,7 @@ import 'package:ehatid_passenger_app/processing_dialog.dart';
 import 'package:ehatid_passenger_app/rate_driver_screen.dart';
 import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:ehatid_passenger_app/select_nearest_active_driver_screen.dart';
+import 'package:ehatid_passenger_app/trips_history_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -116,6 +117,8 @@ class MapSampleState extends State<MapSample> {
     //userId = userModelCurrentInfo!.id!;
 
     initializeGeoFireListener(); //Active Drivers
+    
+    AssistantMethods.readTripKeysForOnlineUser(context);
   }
 
 
@@ -520,7 +523,12 @@ class MapSampleState extends State<MapSample> {
                   ),
                   ListTile(
                     title: new Text("History"),
-                    onTap: (){},
+                    onTap: (){
+                      Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (_) => TripsHistoryScreen(),
+                      ),
+                      );
+                    },
                     leading: Icon(
                       Icons.question_answer_outlined,
                     ),
