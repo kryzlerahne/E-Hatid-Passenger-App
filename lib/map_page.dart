@@ -1,18 +1,13 @@
 import 'dart:async';
-import 'dart:math';
-import 'package:ehatid_passenger_app/Screens/Wallet/wallet.dart';
-import 'package:ehatid_passenger_app/accept_decline.dart';
 import 'package:ehatid_passenger_app/active_nearby_available_drivers.dart';
 import 'package:ehatid_passenger_app/app_info.dart';
-import 'package:ehatid_passenger_app/direction_details_info.dart';
 import 'package:ehatid_passenger_app/geofire_assistant.dart';
-import 'package:ehatid_passenger_app/location_service.dart';
-import 'package:ehatid_passenger_app/main.dart';
+import 'package:ehatid_passenger_app/pay_fare_amount_dialog.dart';
 import 'package:ehatid_passenger_app/processing_dialog.dart';
-import 'package:ehatid_passenger_app/progress_dialog.dart';
+import 'package:ehatid_passenger_app/rate_driver_screen.dart';
 import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:ehatid_passenger_app/select_nearest_active_driver_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -20,16 +15,14 @@ import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:marquee/marquee.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'Screens/Login/sign_in.dart';
 import 'assistant_methods.dart';
 import 'global.dart';
-import 'package:animated_text_kit/animated_text_kit.dart';
 
 class MapSample extends StatefulWidget {
   @override
@@ -41,6 +34,23 @@ class MapSampleState extends State<MapSample> {
   GoogleMapController? newGoogleMapController;
 
   bool isVisible = true;
+
+  final user = FirebaseAuth.instance.currentUser!;
+  final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+  Future<void> _signOut() async {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    await preferences.remove('initScreen');
+    try {
+      await _firebaseAuth.signOut();
+      Navigator.pushReplacement(context, MaterialPageRoute(
+        builder: (_) => SignIn(),
+      ),
+      );
+    } catch (e) {
+      print(e.toString()) ;
+    }
+  }
 
   static final CameraPosition _kGooglePlex = CameraPosition(
     target: LatLng(13.7731, 121.0484),
@@ -155,7 +165,7 @@ class MapSampleState extends State<MapSample> {
 
     referenceRideRequest!.set(userInformationMap);
 
-    tripRideRequestInfoStreamSubscription = referenceRideRequest!.onValue.listen((eventSnap) // getting updates in real time
+    tripRideRequestInfoStreamSubscription = referenceRideRequest!.onValue.listen((eventSnap) async // getting updates in real time
     {
       if(eventSnap.snapshot.value == null)
         {
@@ -213,6 +223,39 @@ class MapSampleState extends State<MapSample> {
         if(userRideRequestStatus == "onTrip")
         {
           updateReachingTimeToUserDropOffLocation(driverCurrentPositionLatLng);
+        }
+
+        //when status = ended
+        if(userRideRequestStatus == "ended")
+        {
+          if((eventSnap.snapshot.value as Map)["fareAmount"] != null)
+          {
+            double fareAmount = double.parse((eventSnap.snapshot.value as Map)["fareAmount"].toString());
+            
+            var response = await showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (BuildContext c) => PayFareAmountDialog(
+                  fareAmount: fareAmount,
+                ),
+            );
+
+            if(response == "cashPayed")
+            {
+              //user can rate the driver
+              if((eventSnap.snapshot.value as Map)["driverId"] != null)
+              {
+                String assignedDriverId = (eventSnap.snapshot.value as Map)["driverId"].toString();
+                
+                Navigator.push(context, MaterialPageRoute(builder: (c)=> RateDriverScreen(
+                  assignedDriverId: assignedDriverId,
+                )));
+
+                referenceRideRequest!.onDisconnect();
+                tripRideRequestInfoStreamSubscription!.cancel();
+              }
+            }
+          }
         }
       }
     });
@@ -293,8 +336,6 @@ class MapSampleState extends State<MapSample> {
         });
 
         Fluttertoast.showToast(msg: "No Online Nearby Drivers");
-
-
         return;
       }
 
@@ -340,7 +381,7 @@ class MapSampleState extends State<MapSample> {
                 });
               }
 
-              //accept the riderequest push notification
+              //accept the ride request push notification
               //(newRideStatus = accepted)
               if(eventSnapshot.snapshot.value == "accepted")
               {
@@ -448,15 +489,107 @@ class MapSampleState extends State<MapSample> {
         title: Text('E-Hatid',
             style:TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold)),
         elevation: 0,
-        leading: IconButton(
-          onPressed: () {
-            //Navigator.pop(context);
-            SystemNavigator.pop();
-            },
-          icon: Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: <Widget>[
+            Expanded(
+              child: ListView(
+                children: <Widget>[
+                  UserAccountsDrawerHeader(
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFED90F),
+                    ),
+                    accountName: new Text('Machu'),
+                    accountEmail: new Text(user.email!),
+                    currentAccountPicture: new CircleAvatar(
+                      radius: 50.0,
+                      backgroundImage: AssetImage("assets/images/machu.jpg"),
+                    ),
+                  ),
+                  ListTile(
+                    title: new Text("Visit Profile"),
+                    onTap: (){},
+                    leading: Icon(
+                      Icons.account_circle_sharp,
+                      color: Color(0xFFFED90F),
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_right,
+                    ),
+                  ),
+                  ListTile(
+                    title: new Text("History"),
+                    onTap: (){},
+                    leading: Icon(
+                      Icons.question_answer_outlined,
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_right,
+                    ),
+                  ),
+                  ListTile(
+                    title: new Text("FAQ"),
+                    onTap: (){},
+                    leading: Icon(
+                      Icons.info_outline_rounded,
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_right,
+                    ),
+                  ),
+                  ListTile(
+                    title: new Text("Settings"),
+                    onTap: (){},
+                    leading: Icon(
+                      Icons.settings,
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_right,
+                    ),
+                  ),
+                  ListTile(
+                    title: new Text("Terms & Conditions"),
+                    onTap: (){},
+                    leading: Icon(
+                      Icons.book,
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_right,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    child: Align(
+                      alignment: FractionalOffset.bottomCenter,
+                      child: Container(
+                        child: Column(
+                          children: <Widget>[
+                            Divider(),
+                            ListTile(
+                              title: Text("Sign Out"),
+                              onTap: () async => await _signOut(),
+                              leading: Icon(
+                                Icons.logout,
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_right,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
       body: Column(
