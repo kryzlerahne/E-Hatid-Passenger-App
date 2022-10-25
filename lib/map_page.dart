@@ -4,6 +4,7 @@ import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/geofire_assistant.dart';
 import 'package:ehatid_passenger_app/pay_fare_amount_dialog.dart';
 import 'package:ehatid_passenger_app/processing_dialog.dart';
+import 'package:ehatid_passenger_app/profile_screen.dart';
 import 'package:ehatid_passenger_app/rate_driver_screen.dart';
 import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:ehatid_passenger_app/select_nearest_active_driver_screen.dart';
@@ -512,7 +513,12 @@ class MapSampleState extends State<MapSample> {
                   ),
                   ListTile(
                     title: new Text("Visit Profile"),
-                    onTap: (){},
+                    onTap: (){
+                      Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (_) => ProfileScreen(),
+                      ),
+                      );
+                    },
                     leading: Icon(
                       Icons.account_circle_sharp,
                       color: Color(0xFFFED90F),
