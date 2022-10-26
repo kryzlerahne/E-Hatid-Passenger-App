@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:ehatid_passenger_app/about_screen.dart';
 import 'package:ehatid_passenger_app/active_nearby_available_drivers.dart';
 import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/geofire_assistant.dart';
@@ -544,7 +545,13 @@ class MapSampleState extends State<MapSample> {
                   ),
                   ListTile(
                     title: new Text("FAQ"),
-                    onTap: (){},
+                    onTap: ()
+                    {
+                      Navigator.pushReplacement(context, MaterialPageRoute(
+                        builder: (_) => AboutScreen(),
+                      ),
+                      );
+                    },
                     leading: Icon(
                       Icons.info_outline_rounded,
                     ),

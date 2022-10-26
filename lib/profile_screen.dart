@@ -17,6 +17,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFEBE5D8),
+      appBar: AppBar(
+        centerTitle: true,
+        backgroundColor: Color(0xFFFED90F),
+        title: Text(
+          "Trips History",
+          style:TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: ()
+          {
+            Navigator.pop(context);
+          },
+        ),
+      ),
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
