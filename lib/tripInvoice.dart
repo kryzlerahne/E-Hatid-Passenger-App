@@ -23,29 +23,13 @@ class _tripInvoiceState extends State<tripInvoice> {
     return Dialog(
       backgroundColor: Color(0XFFFFFCEA),
         child: Container(
-          height: Adaptive.h(60),
+          height: Adaptive.h(65),
           decoration: BoxDecoration(
             color: Color(0XFFFFFCEA),
             borderRadius: BorderRadius.circular(30),
           ),
           child: Stack(
             children: <Widget>[
-              // Container(
-              //   height: size.height,
-              //   width: double.infinity,
-              //   child: Stack(
-              //     alignment: Alignment.center,
-              //     children: <Widget>[
-              //       Positioned(
-              //         top:70,
-              //         left: 0,
-              //         child: Image.asset("assets/images/Vector 2.png",
-              //           width: size.width,
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
               Positioned(
                 top: 29,
                 left: -20,
@@ -149,6 +133,7 @@ class _tripInvoiceState extends State<tripInvoice> {
                 left: Adaptive.w(10),
                 child: Row(
                 children: [
+                SizedBox(height: Adaptive.h(8),),
                 Container(
                     width: Adaptive.w(24),
                     child: Text("Booking ID:",
@@ -183,6 +168,7 @@ class _tripInvoiceState extends State<tripInvoice> {
                 left: Adaptive.w(10),
                 child: Row(
                   children: [
+                    SizedBox(height: Adaptive.h(8),),
                     Container(
                       width: Adaptive.w(27),
                       child: Text("Driver Name:",
@@ -216,6 +202,7 @@ class _tripInvoiceState extends State<tripInvoice> {
                 left: Adaptive.w(10),
                 child: Row(
                   children: [
+                    SizedBox(height: Adaptive.h(8),),
                     Container(
                       width: Adaptive.w(29),
                       child: Text("Plate Number:",
@@ -249,6 +236,7 @@ class _tripInvoiceState extends State<tripInvoice> {
                 left: Adaptive.w(10),
                 child: Row(
                   children: [
+                    SizedBox(height: Adaptive.h(8),),
                     Container(
                       width: Adaptive.w(27),
                       child: Text("Driver Phone:",
@@ -282,6 +270,7 @@ class _tripInvoiceState extends State<tripInvoice> {
                 left: Adaptive.w(10),
                 child: Row(
                   children: [
+                    SizedBox(height: Adaptive.h(8),),
                     Container(
                       width: Adaptive.w(32),
                       child: Text("Estimated Fare:",
@@ -312,7 +301,7 @@ class _tripInvoiceState extends State<tripInvoice> {
               ),
               SizedBox(height: Adaptive.h(100),),
               Positioned(
-                top:Adaptive.h(50),
+                top:Adaptive.h(56),
                 left: Adaptive.w(10),
                 child: MaterialButton(
                   onPressed: (){

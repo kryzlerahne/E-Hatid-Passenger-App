@@ -286,7 +286,7 @@ class _SignInState extends State<SignIn> {
                             TextButton(
                               onPressed: () {
                                 Navigator.pushReplacement(context, MaterialPageRoute(
-                                  builder: (_) => RegisterPage(),
+                                  builder: (_) => SignUp(),
                                   ),
                                 );
                               },

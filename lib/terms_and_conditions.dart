@@ -25,11 +25,11 @@ class PrivacyNoticeState extends State<PrivacyNotice> {
         Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Terms and Conditions ",
+              Text("Privacy Notice ",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontFamily: 'Montserrat',
-                  color: Colors.red,
+                  color: Color(0XFF272727),
                   fontSize: 18.5,
                   letterSpacing: -0.5,
                   fontWeight: FontWeight.bold,
@@ -38,7 +38,7 @@ class PrivacyNoticeState extends State<PrivacyNotice> {
               Icon(
                 Icons.privacy_tip,
                 size: 22.sp,
-                color: Colors.red,
+                color:  Color(0XFF272727),
               ),
             ],
           ),
@@ -57,25 +57,38 @@ class PrivacyNoticeState extends State<PrivacyNotice> {
             textAlign: TextAlign.justify,
             style: TextStyle(fontFamily: "Montserrat", fontSize: 13),),
 
-          Text("Privacy Notice ",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Montserrat',
-              color: Colors.black,
-              fontSize: 18.5,
-              letterSpacing: -0.5,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            children: [
+              Text("Terms and Conditions ",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: Colors.black,
+                  fontSize: 18.5,
+                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Icon(
+                Icons.outlined_flag_outlined,
+                size: 22.sp,
+                color:  Color(0XFF272727),
+              ),
+            ],
           ),
+          SizedBox(height: Adaptive.h(1),),
           Text("E-Hatid is an Android-based mobile application for tricycle booking to help the residents of"
               " Bolbok to have an accessible and convenient mode of transportation via tricycle. This will allow"
               " them to book a tricycle ride in the comfort of their homes without having to worry how they'll get"
               "  a tricycle ride. This is available for use to help them save their time and effort without having"
-              " to walk far going to the terminal. \n",
+              " to walk far going to the terminal. \n\n"
+              "This application also contains in-app purchases such as the loading of life points in order to take your"
+              " account back. You'll just need to go to the TODA G5 in Lourdes Terminal and ask for their policy and prices depending"
+               " on how much life points you will be needing.\n",
         textAlign: TextAlign.justify,
         style: TextStyle(fontFamily: "Montserrat", fontSize: 13),),
 
-          Text("Why we collect your information? ",
+          Text("Why we collect your\n information? ",
             textAlign: TextAlign.center,
             style: TextStyle(
               fontFamily: 'Montserrat',
@@ -85,7 +98,7 @@ class PrivacyNoticeState extends State<PrivacyNotice> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          //SizedBox(height: Adaptive.h(2),),
+          SizedBox(height: Adaptive.h(1),),
 
           Text("We collect your information to be able to store it in the admin's system for daily monitoring of"
               " bookings. All the details that are collected about you will not be disclosed in any way or form"
@@ -94,20 +107,31 @@ class PrivacyNoticeState extends State<PrivacyNotice> {
               " E-Hatid safely and securely. We also collect your information to track "
               "bugs, errors, and usage statistics. In case of any security incident or "
               "data breach, we may also use your information in our investigative "
-              "reporting to the National Privacy Commission. \n\n",
+              "reporting to the National Privacy Commission. \n",
             textAlign: TextAlign.justify,
             style: TextStyle(fontFamily: "Montserrat", fontSize: 13),),
 
-          Text("Data Privacy Act ",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'Montserrat',
-              color: Colors.black,
-              fontSize: 18.5,
-              letterSpacing: -0.5,
-              fontWeight: FontWeight.bold,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Data Privacy Act ",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  color: Colors.black,
+                  fontSize: 18.5,
+                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Icon(
+                Icons.rule_folder,
+                size: 22.sp,
+                color:  Color(0XFF272727),
+              ),
+            ],
           ),
+          SizedBox(height: Adaptive.h(1),),
 
           Text("The Data Privacy Act affords you the following rights with regards to your personal data/information: \n\n"
           "i. To be informed whether Personal Data pertaining to him or her shall be, are being, or have been processed;\n"
