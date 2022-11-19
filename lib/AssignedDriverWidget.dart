@@ -83,7 +83,7 @@ class _AssignedDriverWidgetState extends State<AssignedDriverWidget> {
                         height: 10.h,
                         child: CircleAvatar(
                           radius: 50.0,
-                          backgroundImage: AssetImage("assets/images/machu.jpg"),
+                          backgroundImage: AssetImage("assets/images/icon.png",),
                         ),
                       ),
                       SizedBox(height: 2.h,),
