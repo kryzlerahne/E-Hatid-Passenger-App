@@ -96,14 +96,15 @@ class AssistantMethods
 
     if(directionDetailsInfo.distance_value! > 3000)
     {
-      double totalFareAmount = 50;
-      return double.parse(totalFareAmount.toStringAsFixed(1));
+      double totalFareAmount = 2;
+      return double.parse(totalFareAmount.toString());
     }
+
     else
-      {
-        double totalFareAmount = 40;
-        return double.parse(totalFareAmount.toStringAsFixed(2));
-      }
+    {
+      double totalFareAmount = 1;
+      return double.parse(totalFareAmount.toString());
+    }
 
     //Round off
 

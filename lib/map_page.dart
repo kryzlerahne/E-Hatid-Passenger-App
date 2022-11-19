@@ -845,7 +845,9 @@ class MapSampleState extends State<MapSample> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        "Hello " + userName,
+                        totalFareAmount != 0
+                            ? "Fare Amount: ₱ " + totalFareAmount.toStringAsFixed(2)
+                            : "Hello " + userName,
                           //userModelCurrentInfo!.username! != null ? "Hello " + userModelCurrentInfo!.username! + "!" : "Hello!",
                         //AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
                         //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
@@ -1247,11 +1249,13 @@ class MapSampleState extends State<MapSample> {
     var destinationPosition = Provider.of<AppInfo>(context, listen: false).userDropOffLocation;
 
     var sourceLatLng = LatLng(sourcePosition!.locationLatitude!, sourcePosition!.locationLongitude!);
-    var destinationLatLng = LatLng(destinationPosition!.locationLatitude!, destinationPosition!.locationLongitude!);
+    destinationLatLng = LatLng(destinationPosition!.locationLatitude!, destinationPosition!.locationLongitude!);
+
+    computeFareAmount();
 
     BookingSuccessDialog();
 
-    var directionDetailsInfo = await AssistantMethods.obtainOriginToDestinationDirectionDetails(sourceLatLng, destinationLatLng);
+    var directionDetailsInfo = await AssistantMethods.obtainOriginToDestinationDirectionDetails(sourceLatLng, destinationLatLng!);
 
     setState(() {
       tripDirectionDetailsInfo = directionDetailsInfo;
@@ -1295,27 +1299,27 @@ class MapSampleState extends State<MapSample> {
      });
 
      LatLngBounds boundsLatLng;
-     if(sourceLatLng.latitude > destinationLatLng.latitude && sourceLatLng.longitude > destinationLatLng.longitude)
+     if(sourceLatLng.latitude > destinationLatLng!.latitude && sourceLatLng.longitude > destinationLatLng!.longitude)
      {
-        boundsLatLng = LatLngBounds(southwest: destinationLatLng, northeast: sourceLatLng);
+        boundsLatLng = LatLngBounds(southwest: destinationLatLng!, northeast: sourceLatLng);
      }
-     else if(sourceLatLng.longitude > destinationLatLng.longitude)
+     else if(sourceLatLng.longitude > destinationLatLng!.longitude)
      {
        boundsLatLng = LatLngBounds(
-           southwest: LatLng(sourceLatLng.latitude, destinationLatLng.longitude),
-           northeast: LatLng(destinationLatLng.latitude, sourceLatLng.longitude),
+           southwest: LatLng(sourceLatLng.latitude, destinationLatLng!.longitude),
+           northeast: LatLng(destinationLatLng!.latitude, sourceLatLng.longitude),
        );
      }
-     else if(sourceLatLng.latitude > destinationLatLng.latitude)
+     else if(sourceLatLng.latitude > destinationLatLng!.latitude)
      {
        boundsLatLng = LatLngBounds(
-         southwest: LatLng(destinationLatLng.latitude, sourceLatLng.longitude),
-         northeast: LatLng(sourceLatLng.latitude, destinationLatLng.longitude),
+         southwest: LatLng(destinationLatLng!.latitude, sourceLatLng.longitude),
+         northeast: LatLng(sourceLatLng.latitude, destinationLatLng!.longitude),
        );
      }
      else
        {
-         boundsLatLng = LatLngBounds(southwest: sourceLatLng, northeast: destinationLatLng);
+         boundsLatLng = LatLngBounds(southwest: sourceLatLng, northeast: destinationLatLng!);
        }
 
      newGoogleMapController!.animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
@@ -1341,7 +1345,7 @@ class MapSampleState extends State<MapSample> {
       Marker destinationMarker = Marker(
         markerId: const MarkerId("destinationID"),
         infoWindow: InfoWindow(title: destinationPosition.locationName, snippet: "Destination"),
-        position: destinationLatLng,
+        position: destinationLatLng!,
         icon: destinationIcon,
       );
 
@@ -1366,7 +1370,7 @@ class MapSampleState extends State<MapSample> {
       radius: 12,
       strokeWidth: 3,
       strokeColor: Colors.white,
-      center: destinationLatLng,
+      center: destinationLatLng!,
     );
 
     setState(() {
@@ -1450,6 +1454,78 @@ class MapSampleState extends State<MapSample> {
           builder: (context) => AssignedDriverWidget(),
       );
     });
+  }
+
+  computeFareAmount()
+  async {
+    print("success");
+    var currentUserPositionLatLng = LatLng(
+      userCurrentPosition!.latitude,
+      userCurrentPosition!.longitude,
+    );
+
+    var tripDirectionDetails = await AssistantMethods.obtainOriginToDestinationDirectionDetails(
+      currentUserPositionLatLng,
+      destinationLatLng!,
+    );
+
+    //fare amount
+    double totalFareAmount = AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetails!);
+    if(totalFareAmount == 1)
+    {
+      FirebaseDatabase.instance.ref()
+          .child("fareAmount")
+          .child("minAmount")
+          .once()
+          .then((snap)
+      {
+        if(snap.snapshot.value != null)
+        {
+          String fareAmount = snap.snapshot.value.toString();
+          totalFareAmount = fareAmount.toDouble()!;
+
+          FirebaseDatabase.instance.ref()
+              .child("fareAmount")
+              .child("bookingFee")
+              .once()
+              .then((snapShot)
+          {
+            String booking = snapShot.snapshot.value.toString();
+            bookingFee = booking.toDouble()!;
+            totalFareAmount = totalFareAmount + bookingFee;
+            print("FareAmount: " + totalFareAmount.toString());
+          });
+        }
+      });
+    }
+
+    else if(totalFareAmount == 2)
+    {
+      FirebaseDatabase.instance.ref()
+          .child("fareAmount")
+          .child("maxAmount")
+          .once()
+          .then((snap)
+      {
+        if(snap.snapshot.value != null)
+        {
+          String fareAmount = snap.snapshot.value.toString();
+          totalFareAmount = fareAmount.toDouble()!;
+
+          FirebaseDatabase.instance.ref()
+              .child("fareAmount")
+              .child("bookingFee")
+              .once()
+              .then((snapShot)
+          {
+            String booking = snapShot.snapshot.value.toString();
+            bookingFee = booking.toDouble()!;
+            totalFareAmount = totalFareAmount + bookingFee;
+            print("FareAmount: " + totalFareAmount.toString());
+          });
+        }
+      });
+    }
   }
 }
 

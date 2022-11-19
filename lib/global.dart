@@ -7,6 +7,7 @@ import 'package:ehatid_passenger_app/passenger_data.dart';
 import 'package:ehatid_passenger_app/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
 final FirebaseAuth fAuth = FirebaseAuth.instance;
@@ -33,6 +34,10 @@ String titleStarsRating="";
 String fareAmount ="";
 String requestId="";
 String rideRequestId="";
+LatLng? destinationLatLng;
+
+double bookingFee = 0;
+double totalFareAmount = 0;
 
 PassengerData onlinePassengerData = PassengerData();
 AssetsAudioPlayer audioPlayer = AssetsAudioPlayer();
