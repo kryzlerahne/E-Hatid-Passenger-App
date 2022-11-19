@@ -207,11 +207,11 @@ class MapSampleState extends State<MapSample> {
     {
       userCurrentPosition = position;
 
-        Geofire.setLocation(
-            user.uid,
-            userCurrentPosition!.latitude,
-            userCurrentPosition!.longitude
-        );
+      Geofire.setLocation(
+          user.uid,
+          userCurrentPosition!.latitude,
+          userCurrentPosition!.longitude
+      );
 
       LatLng latLng = LatLng(
         userCurrentPosition!.latitude,
@@ -265,14 +265,14 @@ class MapSampleState extends State<MapSample> {
     referenceRideRequest!.set(userInformationMap);
 
     tripRideRequestInfoStreamSubscription = referenceRideRequest!.onValue.listen((eventSnap) async // getting updates in real time
-    {
-      if(eventSnap.snapshot.value == null)
         {
-          return;
-        }
+      if(eventSnap.snapshot.value == null)
+      {
+        return;
+      }
 
       if ((eventSnap.snapshot.value as Map)["originAddress"] != null) //!! GAWING CAR DETAILS/ PLATE NUMBER
-      {
+          {
         setState(() {
           userCurrentLocation = (eventSnap.snapshot.value as Map)["originAddress"].toString();
         });
@@ -369,12 +369,12 @@ class MapSampleState extends State<MapSample> {
           //when status = accepted
           if(userRideRequestStatus == "accepted") {
             if (notified==false)
-              {
-                passengerIsOfflineNow();
-                assignedDriverModal();
-                updateArrivalTimeToUserPickupLocation(driverCurrentPositionLatLng);
-                notified = true;
-              }
+            {
+              passengerIsOfflineNow();
+              assignedDriverModal();
+              updateArrivalTimeToUserPickupLocation(driverCurrentPositionLatLng);
+              notified = true;
+            }
           }
 
           //when status = arrived
@@ -423,8 +423,8 @@ class MapSampleState extends State<MapSample> {
               }
             }
           }
+        }
       }
-    }
     });
 
     onlineNearbyAvailableDriversList = GeoFireAssistant.activeNearbyAvailableDriversList;
@@ -490,7 +490,7 @@ class MapSampleState extends State<MapSample> {
   showUIForAssignedDriverInfo()
   {
     setState(() {
-     // showWaitingResponseFromDriverUI();
+      // showWaitingResponseFromDriverUI();
       isVisible = !isVisible;
       waitingResponseFromDriverContainerHeight = 0;
       assignedDriverInfoContainerHeight = Adaptive.h(30);
@@ -500,29 +500,29 @@ class MapSampleState extends State<MapSample> {
   showDialogForLongWaiting()
   {
     setState(() {
-        waitingResponseFromDriverContainerHeight = 0;
-        assignedDriverInfoContainerHeight = 0;
-        isVisible = true;
+      waitingResponseFromDriverContainerHeight = 0;
+      assignedDriverInfoContainerHeight = 0;
+      isVisible = true;
 
-        showDialog(
-          context: context,
-          builder: (context) => LongWaitUI(),
-        );
-        //remove ride request in dbase
+      showDialog(
+        context: context,
+        builder: (context) => LongWaitUI(),
+      );
+      //remove ride request in dbase
       FirebaseDatabase.instance.ref()
           .child("All Ride Requests")
           .child(referenceRideRequest!.key.toString())
           .remove();
       passengerIsOfflineNow();
       // RestartWidget.restartApp(context);
-      });
+    });
   }
 
   timerDialog()
   {
-   Timer(Duration(seconds: 500), () {
-     showDialogForLongWaiting();
-   });
+    Timer(Duration(seconds: 500), () {
+      showDialogForLongWaiting();
+    });
   }
 
   showWaitingResponseFromDriverUI()
@@ -531,14 +531,14 @@ class MapSampleState extends State<MapSample> {
       isVisible = !isVisible;
       waitingResponseFromDriverContainerHeight = Adaptive.h(33);
 
-        showDialog(
-            context: context,
-            builder: (context) {
-              Future.delayed(Duration(seconds: 3), () {
-                Navigator.of(context).pop(true);
-              });
-              return ProcessingBookingDialog(message: "Please wait..",);
-            }); // showdialog
+      showDialog(
+          context: context,
+          builder: (context) {
+            Future.delayed(Duration(seconds: 3), () {
+              Navigator.of(context).pop(true);
+            });
+            return ProcessingBookingDialog(message: "Please wait..",);
+          }); // showdialog
     });
   }
 
@@ -564,11 +564,11 @@ class MapSampleState extends State<MapSample> {
 
         //send notification now
         AssistantMethods.sendNotificationToDriverNow(
-            deviceRegistrationToken,
-            referenceRideRequest!.key.toString(),
-            context,
+          deviceRegistrationToken,
+          referenceRideRequest!.key.toString(),
+          context,
         );
-        
+
         Fluttertoast.showToast(msg: "Notification sent successfully.");
       }
       else
@@ -583,16 +583,16 @@ class MapSampleState extends State<MapSample> {
   {
     DatabaseReference ref = FirebaseDatabase.instance.ref().child("drivers");
     for(int i = 0; i<onlineNearestDriversList.length; i++)
+    {
+      await ref.child(onlineNearestDriversList[i].driverId.toString())
+          .once()
+          .then((dataSnapshot)
       {
-        await ref.child(onlineNearestDriversList[i].driverId.toString())
-            .once()
-            .then((dataSnapshot)
-        {
-           var driverKeyInfo = dataSnapshot.snapshot.value;
-           dList.add(driverKeyInfo);
-           print("driverKey Info: " + dList.toString());
-        });
-      }
+        var driverKeyInfo = dataSnapshot.snapshot.value;
+        dList.add(driverKeyInfo);
+        print("driverKey Info: " + dList.toString());
+      });
+    }
   }
 
   @override
@@ -624,17 +624,17 @@ class MapSampleState extends State<MapSample> {
                         fontFamily: "Montserrat",
                         fontWeight: FontWeight.w600,),
                     ),// added null condition here,
-                  accountEmail: user.email! !=null ? new Text(user.email!,
-                  style: TextStyle( color: Colors.white,
-                    fontSize: 15,
-                    fontFamily: "Montserrat",
-                    fontWeight: FontWeight.w600,),
-                ): new Text(""),
-                  currentAccountPicture: new CircleAvatar(
-                  radius: 50.0,
-                  backgroundColor: Colors.transparent,
-                  backgroundImage:  AssetImage("assets/images/icon.png"),
-                  ),
+                    accountEmail: user.email! !=null ? new Text(user.email!,
+                      style: TextStyle( color: Colors.white,
+                        fontSize: 15,
+                        fontFamily: "Montserrat",
+                        fontWeight: FontWeight.w600,),
+                    ): new Text(""),
+                    currentAccountPicture: new CircleAvatar(
+                      radius: 50.0,
+                      backgroundColor: Colors.transparent,
+                      backgroundImage:  AssetImage("assets/images/icon.png"),
+                    ),
                   ),
                   ListTile(
                     title: new Text("Home",
@@ -831,10 +831,8 @@ class MapSampleState extends State<MapSample> {
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        totalFareAmount != 0
-                            ? "Fare Amount: ₱ " + totalFareAmount.toStringAsFixed(2)
-                            : "Hello " + userName,
-                          //userModelCurrentInfo!.username! != null ? "Hello " + userModelCurrentInfo!.username! + "!" : "Hello!",
+                        "Hello " + userName,
+                        //userModelCurrentInfo!.username! != null ? "Hello " + userModelCurrentInfo!.username! + "!" : "Hello!",
                         //AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
                         //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
                         style: TextStyle(
@@ -898,13 +896,13 @@ class MapSampleState extends State<MapSample> {
                               readOnly: true,
                               onTap: () async
                               {
-                               var responseFromSearchScreen = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
+                                var responseFromSearchScreen = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
 
-                               if(responseFromSearchScreen == "Obtained Destination Address")
-                                 {
-                                   //Draw Routes and polyline
-                                   await drawPolyLineFromSourceToDestination();
-                                 }
+                                if(responseFromSearchScreen == "Obtained Destination Address")
+                                {
+                                  //Draw Routes and polyline
+                                  await drawPolyLineFromSourceToDestination();
+                                }
                               },
                               decoration: InputDecoration(
                                   isDense: true,
@@ -945,28 +943,32 @@ class MapSampleState extends State<MapSample> {
                       fontFamily: "Montserrat",
                       fontWeight: FontWeight.w600,),),
                     color: Color(0XFF0CBC8B),
-                    onPressed: () async
+                    onPressed: ()
                     {
 
-                      var response = await showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext c) => ShowAmount()
-                      );
+                      getFareAmount();
 
-                      if (response=="AgreedFareAmount")
-                      {
-                        if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
+                      Timer(Duration(milliseconds: 400), () async {
+                        var response = await showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext c) => ShowAmount()
+                        );
+
+                        if (response=="AgreedFareAmount")
                         {
-                          passengerIsOnlineNow();
-                          saveRideRequestInformation();
-                          showWaitingResponseFromDriverUI();
+                          if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
+                          {
+                            passengerIsOnlineNow();
+                            saveRideRequestInformation();
+                            showWaitingResponseFromDriverUI();
+                          }
+                          else
+                          {
+                            Fluttertoast.showToast(msg: "Please select your destination location first.");
+                          }
                         }
-                        else
-                        {
-                          Fluttertoast.showToast(msg: "Please select your destination location first.");
-                        }
-                      }
+                      });
                     },
                   ),
                   SizedBox(height: Adaptive.h(1.5),),
@@ -992,14 +994,14 @@ class MapSampleState extends State<MapSample> {
                     Padding(
                       padding: EdgeInsets.only(top: 15.0),
                       child: Text("We are processing your booking...",
-                      style: TextStyle( color: Colors.white,
-                        fontSize: 15,
-                        fontFamily: "Montserrat",
-                        fontWeight: FontWeight.w600,),
+                        style: TextStyle( color: Colors.white,
+                          fontSize: 15,
+                          fontFamily: "Montserrat",
+                          fontWeight: FontWeight.w600,),
                       ),
                     ),
                     Text("Please wait while we connect you to your driver.",
-                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 11, fontStyle: FontStyle.italic),
+                      style: TextStyle(fontFamily: 'Montserrat', fontSize: 11, fontStyle: FontStyle.italic),
                     ),
                     SizedBox(height: Adaptive.h(2),),
                     FittedBox(
@@ -1180,15 +1182,15 @@ class MapSampleState extends State<MapSample> {
                             child: Row(
                               children: [
                                 Icon(
-                                Icons.receipt_long,
-                                color: Colors.white,
-                                size: 22,
-                              ),
+                                  Icons.receipt_long,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
                                 Text("View Trip Invoice",
                                   style: TextStyle( color: Colors.white,
-                                  fontSize: 13,
-                                  fontFamily: "Montserrat",
-                                  fontWeight: FontWeight.w600,),),
+                                    fontSize: 13,
+                                    fontFamily: "Montserrat",
+                                    fontWeight: FontWeight.w600,),),
                               ],
                             ),
                             color: Color(0XFF0CBC8B),
@@ -1233,7 +1235,7 @@ class MapSampleState extends State<MapSample> {
             ),
           ],
         ),
-      ],
+        ],
       ),
     );
   }
@@ -1269,55 +1271,55 @@ class MapSampleState extends State<MapSample> {
     pLineCoOrdinatesList.clear();
 
     if(decodedPolyLinePointsResultList.isNotEmpty)
+    {
+      decodedPolyLinePointsResultList.forEach((PointLatLng pointLatLng)
       {
-        decodedPolyLinePointsResultList.forEach((PointLatLng pointLatLng)
-        {
-          pLineCoOrdinatesList.add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
-        });
-      }
+        pLineCoOrdinatesList.add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
+      });
+    }
 
     polyLineSet.clear();
 
-     setState(() {
-       Polyline polyline = Polyline(
-         color: Color(0XFF0CBC8B),
-         polylineId: const PolylineId("PolylineID"),
-         jointType: JointType.round,
-         points: pLineCoOrdinatesList,
-         startCap: Cap.roundCap,
-         endCap: Cap.roundCap,
-         geodesic: true,
-         width: 3,
-       );
+    setState(() {
+      Polyline polyline = Polyline(
+        color: Color(0XFF0CBC8B),
+        polylineId: const PolylineId("PolylineID"),
+        jointType: JointType.round,
+        points: pLineCoOrdinatesList,
+        startCap: Cap.roundCap,
+        endCap: Cap.roundCap,
+        geodesic: true,
+        width: 3,
+      );
 
-       polyLineSet.add(polyline);
-     });
+      polyLineSet.add(polyline);
+    });
 
-     LatLngBounds boundsLatLng;
-     if(sourceLatLng.latitude > destinationLatLng!.latitude && sourceLatLng.longitude > destinationLatLng!.longitude)
-     {
-        boundsLatLng = LatLngBounds(southwest: destinationLatLng!, northeast: sourceLatLng);
-     }
-     else if(sourceLatLng.longitude > destinationLatLng!.longitude)
-     {
-       boundsLatLng = LatLngBounds(
-           southwest: LatLng(sourceLatLng.latitude, destinationLatLng!.longitude),
-           northeast: LatLng(destinationLatLng!.latitude, sourceLatLng.longitude),
-       );
-     }
-     else if(sourceLatLng.latitude > destinationLatLng!.latitude)
-     {
-       boundsLatLng = LatLngBounds(
-         southwest: LatLng(destinationLatLng!.latitude, sourceLatLng.longitude),
-         northeast: LatLng(sourceLatLng.latitude, destinationLatLng!.longitude),
-       );
-     }
-     else
-       {
-         boundsLatLng = LatLngBounds(southwest: sourceLatLng, northeast: destinationLatLng!);
-       }
+    LatLngBounds boundsLatLng;
+    if(sourceLatLng.latitude > destinationLatLng!.latitude && sourceLatLng.longitude > destinationLatLng!.longitude)
+    {
+      boundsLatLng = LatLngBounds(southwest: destinationLatLng!, northeast: sourceLatLng);
+    }
+    else if(sourceLatLng.longitude > destinationLatLng!.longitude)
+    {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(sourceLatLng.latitude, destinationLatLng!.longitude),
+        northeast: LatLng(destinationLatLng!.latitude, sourceLatLng.longitude),
+      );
+    }
+    else if(sourceLatLng.latitude > destinationLatLng!.latitude)
+    {
+      boundsLatLng = LatLngBounds(
+        southwest: LatLng(destinationLatLng!.latitude, sourceLatLng.longitude),
+        northeast: LatLng(sourceLatLng.latitude, destinationLatLng!.longitude),
+      );
+    }
+    else
+    {
+      boundsLatLng = LatLngBounds(southwest: sourceLatLng, northeast: destinationLatLng!);
+    }
 
-     newGoogleMapController!.animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
+    newGoogleMapController!.animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
 
     setState(() async {
       BitmapDescriptor originIcon = await BitmapDescriptor.fromAssetImage(
@@ -1423,7 +1425,7 @@ class MapSampleState extends State<MapSample> {
         );
         Fluttertoast.showToast(msg: "Sorry, your account has been suspended due to malicious activities. Please contact the admin from the TODA terminal.");
       }
-     });
+    });
   }
 
   passengerIsOfflineNow()
@@ -1445,8 +1447,8 @@ class MapSampleState extends State<MapSample> {
     AudioPlayer().play(AssetSource('sounds/notif_sound.mp3'));
     await Timer(Duration(milliseconds: 800), () {
       showDialog(
-          context: context,
-          builder: (context) => AssignedDriverWidget(),
+        context: context,
+        builder: (context) => AssignedDriverWidget(),
       );
     });
   }
@@ -1489,6 +1491,12 @@ class MapSampleState extends State<MapSample> {
             bookingFee = booking.toDouble()!;
             totalFareAmount = totalFareAmount + bookingFee;
             print("FareAmount: " + totalFareAmount.toString());
+
+            FirebaseDatabase.instance.ref()
+                .child("passengers")
+                .child(currentFirebaseUser!.uid)
+                .child("fareAmount")
+                .set(totalFareAmount.toStringAsFixed(2));
           });
         }
       });
@@ -1517,10 +1525,32 @@ class MapSampleState extends State<MapSample> {
             bookingFee = booking.toDouble()!;
             totalFareAmount = totalFareAmount + bookingFee;
             print("FareAmount: " + totalFareAmount.toString());
+
+            FirebaseDatabase.instance.ref()
+                .child("passengers")
+                .child(currentFirebaseUser!.uid)
+                .child("fareAmount")
+                .set(totalFareAmount.toStringAsFixed(2));
           });
         }
       });
     }
   }
-}
 
+  getFareAmount()
+  {
+    FirebaseDatabase.instance.ref()
+        .child("passengers")
+        .child(user.uid)
+        .child("fareAmount")
+        .onValue.listen((value)
+    {
+      if(value.snapshot.value != null)
+      {
+        String fareAmount = value.snapshot.value.toString();
+        totalFareAmount = fareAmount.toDouble()!;
+        print("DialogAmount: " + totalFareAmount.toString());
+      }
+    });
+  }
+}
