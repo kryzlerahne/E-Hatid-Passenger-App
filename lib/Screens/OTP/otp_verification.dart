@@ -3,8 +3,10 @@ import 'package:ehatid_passenger_app/Screens/OTP/otp_verified.dart';
 import 'package:ehatid_passenger_app/Screens/Registration/sign_up.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pinput/pinput.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 class OtpBody extends StatefulWidget {
   final String phone;
@@ -74,7 +76,7 @@ class _OtpBodyState extends State<OtpBody> {
       verificationCompleted: (PhoneAuthCredential credential) async{
         await FirebaseAuth.instance.signInWithCredential(credential).then((value){
           if(value.user != null){
-            Navigator.of(context).push(MaterialPageRoute(builder: (c) => OtpVerified()));
+            Navigator.of(context).push(MaterialPageRoute(builder: (c) => RegisterPage(phone:  "0" + widget.phone,)));
           }
         });
       },
@@ -109,7 +111,7 @@ class _OtpBodyState extends State<OtpBody> {
     ).whenComplete(() {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => const OtpVerified(),
+          builder: (context) => OtpVerified(phone:  "0" + widget.phone,)
         ),
       );
     });
@@ -123,7 +125,7 @@ class _OtpBodyState extends State<OtpBody> {
     //total height and width
     return Scaffold(
       key: _scaffolkey,
-      backgroundColor: Color.fromARGB(255, 245, 245, 245),
+      backgroundColor: Color(0XFFFFFCEA),
       body: SingleChildScrollView(
         child: Stack(
           children: <Widget>[
@@ -143,16 +145,17 @@ class _OtpBodyState extends State<OtpBody> {
               ),
             ),
             Container(
-              margin: const EdgeInsets.fromLTRB(30, 60, 30, 0),
+              margin: const EdgeInsets.fromLTRB(30, 40, 30, 0),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  SizedBox(height: 50),
-                  Image.asset("assets/images/mini logo.png",
-                    width: size.width * 0.2,
+
+                  Image.asset("assets/images/verifyPhone.png",
+                    width: Adaptive.w(60),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(bottom: 5, top: 10),
+                    padding: EdgeInsets.only(bottom: 5, top: 2),
                     child: Text(
                       "Verify Phone Number",
                       overflow: TextOverflow.visible,
@@ -194,7 +197,7 @@ class _OtpBodyState extends State<OtpBody> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.all(40),
+                    padding: EdgeInsets.symmetric(vertical: 20),
                     child: Pinput(
                         length: 6,
                         pinAnimationType: PinAnimationType.slide,
@@ -216,18 +219,16 @@ class _OtpBodyState extends State<OtpBody> {
                                 .credential(verificationId: verificationCode!, smsCode: pin))
                                 .then((value) {
                               if(value.user != null){
-                                Navigator.of(context).push(MaterialPageRoute(builder: (c) => OtpVerified()));
+                                // Navigator.of(context).push(MaterialPageRoute(builder: (c) => OtpVerified()));
+                                Navigator.of(context).push(MaterialPageRoute(builder: (c) => RegisterPage(
+                                  phone: "0" + widget.phone,
+                                )));
                               }
                             });
                           }
                           catch(e){
                             FocusScope.of(context).unfocus();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text("Invalid OTP!"),
-                                duration: Duration(seconds: 3),
-                              ),
-                            );
+                            Fluttertoast.showToast(msg: "Invalid OTP. Try again.");
                           }
                         }
                     ),
@@ -259,7 +260,7 @@ class _OtpBodyState extends State<OtpBody> {
                                 fontSize: 16.0,
                                 fontFamily: 'Montserrat',
                                 fontWeight: FontWeight.w600,
-                                color: Color.fromARGB(255, 123, 20, 255),
+                                color: Color(0XFFFED90F),
                                 letterSpacing: -0.56,
                               ),
                             ),
@@ -269,7 +270,7 @@ class _OtpBodyState extends State<OtpBody> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.only(bottom: 50, top: 15),
+                    padding: EdgeInsets.only(bottom: 50, top: 5),
                     child: GestureDetector(
                       child: Text("Change Mobile Number",
                         style: TextStyle(
@@ -293,14 +294,12 @@ class _OtpBodyState extends State<OtpBody> {
                     child: MaterialButton(
                       onPressed: (){
                         if(pin.length >= 6) {
-                          verifyOTP();
+                          Navigator.of(context).push(MaterialPageRoute(builder: (c) => OtpVerified(
+                            phone: "0" + widget.phone,
+                          )));
+                          // verifyOTP();
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text("Invalid OTP!"),
-                              duration: Duration(seconds: 3),
-                            ),
-                          );
+                          Fluttertoast.showToast(msg: "Invalid OTP.");
                         }
                       },
                       color: Colors.black,
