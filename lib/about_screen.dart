@@ -10,6 +10,7 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'Screens/Login/sign_in.dart';
+import 'terms_and_conditions.dart';
 import 'tripInvoice.dart';
 import 'trips_history_screen.dart';
 import 'view_profile.dart';
@@ -409,11 +410,32 @@ class _FAQScreenState extends State<FAQScreen>
               ],
             ),
             SizedBox(height: 4.h,),
-            Text("E-Hatid. Copyright © 2022. All Rights Reserved.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontFamily: 'Montserrat', fontSize: 11, color: Color(0xff646262), letterSpacing: -0.5,
-              ),
+            Column(
+              children: [
+                Text("E-Hatid. Copyright © 2022. All Rights Reserved. | ",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontFamily: 'Montserrat', fontSize: 12, color: Color(0xff646262), letterSpacing: -0.5,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: (){
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext c)
+                        {
+                          return PrivacyNotice();
+                        }
+                    );
+                  },
+                  child: Text("Terms and Conditions ",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: 'Montserrat', fontSize: 12, color: Color(0xff646262), letterSpacing: -0.5, decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 3.h,),
             // StreamBuilder(
