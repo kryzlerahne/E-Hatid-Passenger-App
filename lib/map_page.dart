@@ -1131,7 +1131,7 @@ class MapSampleState extends State<MapSample> {
                                     style: TextStyle(fontFamily: 'Montserrat', fontSize: 3.6.w,
                                     ),
                                   ),
-                                  Text( driverPhone,
+                                  Text( driverPhone + " | Php " + fareAmount,
                                     style: TextStyle(fontFamily: 'Montserrat', fontSize: 3.6.w,
                                     ),
                                   ),
