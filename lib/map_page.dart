@@ -156,28 +156,6 @@ class MapSampleState extends State<MapSample> {
     PushNotificationSystem pushNotificationSystem = PushNotificationSystem();
     pushNotificationSystem.initializeCloudMessaging(context);
     pushNotificationSystem.generateAndGetToken();
-
-    // FirebaseDatabase.instance.ref()
-    //     .child("drivers")
-    //     .child(user.uid)
-    //     .once()
-    //     .then((snap)
-    // {
-    //   if(snap.snapshot.value != null)
-    //   {
-    //     onlinePassengerData.id = (snap.snapshot.value as Map)["id"];
-    //     onlinePassengerData.first_name = (snap.snapshot.value as Map)["first_name"];
-    //     onlinePassengerData.last_name = (snap.snapshot.value as Map)["last_name"];
-    //     onlinePassengerData.phone = (snap.snapshot.value as Map)["phone"];
-    //     onlinePassengerData.email = (snap.snapshot.value as Map)["email"];
-    //   }
-    // });
-
-   // PushNotificationSystem pushNotificationSystem = PushNotificationSystem();
-    //pushNotificationSystem.initializeCloudMessaging(context);
-    //pushNotificationSystem.generateAndGetToken();
-
-    //AssistantMethods.readDriverEarnings(context);
   }
 
   @override
@@ -677,6 +655,7 @@ class MapSampleState extends State<MapSample> {
                             .child(referenceRideRequest!.key.toString())
                             .remove();
                       }
+                      passengerIsOfflineNow();
                     },
                     leading: Icon(
                       Icons.home,
@@ -705,6 +684,8 @@ class MapSampleState extends State<MapSample> {
                             .child("All Ride Requests")
                             .child(referenceRideRequest!.key.toString())
                             .remove();
+
+                        passengerIsOfflineNow();
                       }
                     },
                     leading: Icon(
@@ -732,6 +713,8 @@ class MapSampleState extends State<MapSample> {
                             .child("All Ride Requests")
                             .child(referenceRideRequest!.key.toString())
                             .remove();
+
+                        passengerIsOfflineNow();
                       }
                     },
                     leading: Icon(
@@ -760,6 +743,8 @@ class MapSampleState extends State<MapSample> {
                             .child("All Ride Requests")
                             .child(referenceRideRequest!.key.toString())
                             .remove();
+
+                        passengerIsOfflineNow();
                       }
                     },
                     leading: Icon(

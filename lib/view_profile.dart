@@ -10,6 +10,7 @@ import 'package:ehatid_passenger_app/update_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
@@ -491,5 +492,17 @@ class _ViewProfileState extends State<ViewProfile> {
     );
   }
 
+  passengerIsOfflineNow()
+  {
+    Geofire.removeLocation(user.uid);
+
+    DatabaseReference? ref = FirebaseDatabase.instance.ref()
+        .child("passenger")
+        .child(user.uid)
+        .child("newRideStatus");
+    ref.onDisconnect();
+    ref.remove();
+    ref = null;
+  }
 
 }
