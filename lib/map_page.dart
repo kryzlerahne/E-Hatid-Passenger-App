@@ -17,6 +17,7 @@ import 'package:ehatid_passenger_app/push_notification_system.dart';
 import 'package:ehatid_passenger_app/rate_driver_screen.dart';
 import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:ehatid_passenger_app/select_nearest_active_driver_screen.dart';
+import 'package:ehatid_passenger_app/showAmountDialog.dart';
 import 'package:ehatid_passenger_app/tripInvoice.dart';
 import 'package:ehatid_passenger_app/trips_history_screen.dart';
 import 'package:ehatid_passenger_app/user_model.dart';
@@ -961,17 +962,26 @@ class MapSampleState extends State<MapSample> {
                     color: Color(0XFF0CBC8B),
                     onPressed: () async
                     {
-                      if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
+
+                      var response = await showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext c) => ShowAmount()
+                      );
+
+                      if (response=="AgreedFareAmount")
+                      {
+                        if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
                         {
                           passengerIsOnlineNow();
                           saveRideRequestInformation();
                           showWaitingResponseFromDriverUI();
-
                         }
-                      else
+                        else
                         {
                           Fluttertoast.showToast(msg: "Please select your destination location first.");
                         }
+                      }
                     },
                   ),
                   SizedBox(height: Adaptive.h(1.5),),
