@@ -33,9 +33,10 @@ class AssistantMethods
       userPickUpAddress.locationLongitude = position.longitude;
       userPickUpAddress.locationName = humanReadableAddress;
 
-
       Provider.of<AppInfo>(context, listen: false).updatePickUpLocationAddress(userPickUpAddress);
     }
+    String userCurrentLocation = humanReadableAddress;
+    print("Eto oh" + userCurrentLocation);
     return humanReadableAddress;
   }
 
@@ -52,15 +53,16 @@ class AssistantMethods
         .child("passengers")
         .child(currentFirebaseUser!.uid);
 
-    userRef.once().then((snap)
+    userRef.onValue.listen((snap)
     {
       if(snap.snapshot.value != null)
       {
         userModelCurrentInfo = UserModel.fromSnapshot(snap.snapshot);
         print("name" + userModelCurrentInfo!.first_name.toString());
-        print("id" + userModelCurrentInfo!.id.toString());
+        print("username" + userModelCurrentInfo!.username.toString());
       }
     });
+
   }
 
   static Future<DirectionDetailsInfo?> obtainOriginToDestinationDirectionDetails(LatLng originPosition, LatLng destinationPosition) async
@@ -152,6 +154,8 @@ class AssistantMethods
 
   //retrieve the trips key for online user
   //trip key = ride request key
+
+
   static void readTripKeysForOnlineUser(context)
   {
     FirebaseDatabase.instance.ref()
@@ -191,8 +195,11 @@ class AssistantMethods
       FirebaseDatabase.instance.ref()
           .child("All Ride Requests")
           .child(eachKey)
+          .orderByChild("time")
+          .limitToFirst(20)
           .once()
           .then((snap)
+
       {
         var eachTripHistory = TripsHistoryModel.fromSnapshot(snap.snapshot);
 
@@ -204,6 +211,40 @@ class AssistantMethods
 
       });
     }
+  }
+
+  static void readLifePoints(context)
+  {
+    FirebaseDatabase.instance.ref()
+        .child("passengers")
+        .child(fAuth.currentUser!.uid)
+        .child("lifePoints")
+        .once()
+        .then((snap)
+    {
+      if(snap.snapshot.value != null)
+      {
+        String passengerLife = snap.snapshot.value.toString();
+        Provider.of<AppInfo>(context, listen: false).updateLifePoints(passengerLife);
+      }
+    });
+  }
+
+  static void readRatings(context)
+  {
+    FirebaseDatabase.instance.ref()
+        .child("All Ride Requests")
+        .child(driverId)
+        .child("ratings")
+        .once()
+        .then((snap)
+    {
+      if(snap.snapshot.value != null)
+      {
+        String rating = snap.snapshot.value.toString();
+        Provider.of<AppInfo>(context, listen: false).updateRatings(rating);
+      }
+    });
   }
 }
 

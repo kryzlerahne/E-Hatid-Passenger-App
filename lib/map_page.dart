@@ -1,15 +1,26 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:ehatid_passenger_app/Account/account.dart';
+import 'package:ehatid_passenger_app/AssignedDriverWidget.dart';
 import 'package:ehatid_passenger_app/about_screen.dart';
+import 'package:ehatid_passenger_app/accept_decline.dart';
 import 'package:ehatid_passenger_app/active_nearby_available_drivers.dart';
 import 'package:ehatid_passenger_app/app_info.dart';
+import 'package:ehatid_passenger_app/cancellation.dart';
 import 'package:ehatid_passenger_app/geofire_assistant.dart';
+import 'package:ehatid_passenger_app/long_waiting_UI.dart';
+import 'package:ehatid_passenger_app/main.dart';
 import 'package:ehatid_passenger_app/pay_fare_amount_dialog.dart';
 import 'package:ehatid_passenger_app/processing_dialog.dart';
 import 'package:ehatid_passenger_app/profile_screen.dart';
+import 'package:ehatid_passenger_app/push_notification_system.dart';
 import 'package:ehatid_passenger_app/rate_driver_screen.dart';
 import 'package:ehatid_passenger_app/search_places_screen.dart';
 import 'package:ehatid_passenger_app/select_nearest_active_driver_screen.dart';
+import 'package:ehatid_passenger_app/tripInvoice.dart';
 import 'package:ehatid_passenger_app/trips_history_screen.dart';
+import 'package:ehatid_passenger_app/user_model.dart';
+import 'package:ehatid_passenger_app/view_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -23,33 +34,46 @@ import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:supercharged/supercharged.dart';
 import 'Screens/Login/sign_in.dart';
 import 'assistant_methods.dart';
 import 'global.dart';
 
 class MapSample extends StatefulWidget {
+
   @override
   State<MapSample> createState() => MapSampleState();
+
+  String? name;
+  String? email;
+
+  MapSample({this.name, this.email});
 }
 
 class MapSampleState extends State<MapSample> {
+
+  late bool _isLoading;
+  TextEditingController _destinationController = TextEditingController();
+
   Completer<GoogleMapController> _controllerGoogleMap = Completer();
   GoogleMapController? newGoogleMapController;
 
   bool isVisible = true;
+  bool notified = false;
 
   final user = FirebaseAuth.instance.currentUser!;
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+  //UserModel? userModelCurrentInfo;
 
   Future<void> _signOut() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     await preferences.remove('initScreen');
     try {
       await _firebaseAuth.signOut();
-      Navigator.pushReplacement(context, MaterialPageRoute(
-        builder: (_) => SignIn(),
-      ),
-      );
+      Navigator.of(context, rootNavigator:
+      true).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+          SignIn()), (route) => false);
     } catch (e) {
       print(e.toString()) ;
     }
@@ -75,8 +99,10 @@ class MapSampleState extends State<MapSample> {
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
 
-  String userName = "";
+  String name = "Loading...";
+  String userName = " ";
   String userId = "";
+  String userEmail = "Email";
 
   bool activeNearbyDriverKeysLoaded = false; //Active drivers code
 
@@ -102,7 +128,8 @@ class MapSampleState extends State<MapSample> {
     }
   }
 
-  locateUserPosition() async {
+  locateUserPosition() async
+  {
     Position cPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
     userCurrentPosition = cPosition;
 
@@ -115,21 +142,105 @@ class MapSampleState extends State<MapSample> {
     String humanReadableAddress = await AssistantMethods.searchAddressForGeographicCoordinates(userCurrentPosition!, context);
     print("this is your address =" + humanReadableAddress);
 
-    //userName = userModelCurrentInfo!.username!;
-    //userId = userModelCurrentInfo!.id!;
+    //initializeGeoFireListener(); //Active Drivers
 
-    initializeGeoFireListener(); //Active Drivers
-    
     AssistantMethods.readTripKeysForOnlineUser(context);
+    AssistantMethods.readLifePoints(context);
+    AssistantMethods.readRatings(context);
   }
 
+  readCurrentPassengerInformation() async
+  {
+    currentFirebaseUser = fAuth.currentUser;
+    PushNotificationSystem pushNotificationSystem = PushNotificationSystem();
+    pushNotificationSystem.initializeCloudMessaging(context);
+    pushNotificationSystem.generateAndGetToken();
+
+    // FirebaseDatabase.instance.ref()
+    //     .child("drivers")
+    //     .child(user.uid)
+    //     .once()
+    //     .then((snap)
+    // {
+    //   if(snap.snapshot.value != null)
+    //   {
+    //     onlinePassengerData.id = (snap.snapshot.value as Map)["id"];
+    //     onlinePassengerData.first_name = (snap.snapshot.value as Map)["first_name"];
+    //     onlinePassengerData.last_name = (snap.snapshot.value as Map)["last_name"];
+    //     onlinePassengerData.phone = (snap.snapshot.value as Map)["phone"];
+    //     onlinePassengerData.email = (snap.snapshot.value as Map)["email"];
+    //   }
+    // });
+
+   // PushNotificationSystem pushNotificationSystem = PushNotificationSystem();
+    //pushNotificationSystem.initializeCloudMessaging(context);
+    //pushNotificationSystem.generateAndGetToken();
+
+    //AssistantMethods.readDriverEarnings(context);
+  }
 
   @override
   void initState() {
+    _isLoading = true;
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _isLoading=false;
+      });
+    });
+
     super.initState();
     //_setMarker(LatLng(37.42796133580664, -122.085749655962));
     AssistantMethods.readCurrentOnlineUserInfo();
     checkIfLocationPermissionAllowed();
+
+    //AssistantMethods.readCurrentOnlineUserInfo();
+    readCurrentPassengerInformation();
+  }
+
+  passengerIsOnlineNow() async
+  {
+    Position pos = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    userCurrentPosition = pos;
+
+    Geofire.initialize("activePassengers");
+
+    Geofire.setLocation(
+        user.uid,
+        userCurrentPosition!.latitude,
+        userCurrentPosition!.longitude
+    );
+
+    DatabaseReference ref = FirebaseDatabase.instance.ref()
+        .child("passengers")
+        .child(user.uid)
+        .child("newRideStatus");
+
+    ref.set(""); //searching for ride request
+    ref.onValue.listen((event) { });
+  }
+
+  updatePassengersLocationAtRealTime()
+  {
+    streamSubscriptionPosition = Geolocator.getPositionStream()
+        .listen((Position position)
+    {
+      userCurrentPosition = position;
+
+        Geofire.setLocation(
+            user.uid,
+            userCurrentPosition!.latitude,
+            userCurrentPosition!.longitude
+        );
+
+      LatLng latLng = LatLng(
+        userCurrentPosition!.latitude,
+        userCurrentPosition!.longitude,
+      );
+
+      newGoogleMapController!.animateCamera(CameraUpdate.newLatLng(latLng));
+    });
   }
 
   saveRideRequestInformation() //Ride Request Code
@@ -137,6 +248,7 @@ class MapSampleState extends State<MapSample> {
     //1. save the Ride Request Information
 
     referenceRideRequest = FirebaseDatabase.instance.ref().child("All Ride Requests").push(); // Creates unique ID
+    String? rideKey = referenceRideRequest!.key.toString();
 
     var originLocation = Provider.of<AppInfo>(context, listen: false).userPickUpLocation;
     var destinationLocation = Provider.of<AppInfo>(context, listen: false).userDropOffLocation;
@@ -160,12 +272,15 @@ class MapSampleState extends State<MapSample> {
       "origin": originLocationMap,
       "destination": destinationLocationMap,
       "time": DateTime.now().toString(),
+      "name": userModelCurrentInfo!.first_name.toString() + " " + userModelCurrentInfo!.last_name.toString(),
       "username": userModelCurrentInfo!.username!,
       "email": userModelCurrentInfo!.email!,
       "id": userModelCurrentInfo!.id!,
+      "requestId": rideKey,
       "originAddress": originLocation.locationName,
       "destinationAddress": destinationLocation.locationName,
       "driverId": "waiting",
+      "notified" : "false",
     };
 
     referenceRideRequest!.set(userInformationMap);
@@ -177,10 +292,24 @@ class MapSampleState extends State<MapSample> {
           return;
         }
 
-      if ((eventSnap.snapshot.value as Map)["driverPlateNum"] != null) //!! GAWING CAR DETAILS/ PLATE NUMBER
+      if ((eventSnap.snapshot.value as Map)["originAddress"] != null) //!! GAWING CAR DETAILS/ PLATE NUMBER
       {
         setState(() {
+          userCurrentLocation = (eventSnap.snapshot.value as Map)["originAddress"].toString();
+        });
+      }
+
+      if ((eventSnap.snapshot.value as Map)["driverPlateNum"] != null) //!! GAWING CAR DETAILS/ PLATE NUMBER
+          {
+        setState(() {
           driverTricDetails = (eventSnap.snapshot.value as Map)["driverPlateNum"].toString();
+        });
+      }
+
+      if ((eventSnap.snapshot.value as Map)["requestId"] != null) //!! GAWING CAR DETAILS/ PLATE NUMBER
+          {
+        setState(() {
+          rideRequestId = (eventSnap.snapshot.value as Map)["requestId"].toString();
         });
       }
 
@@ -191,6 +320,13 @@ class MapSampleState extends State<MapSample> {
         });
       }
 
+      if ((eventSnap.snapshot.value as Map)["fareAmount"] != null) //!! GET PHONE NUMBER
+          {
+        setState(() {
+          fareAmount = (eventSnap.snapshot.value as Map)["fareAmount"].toString();
+        });
+      }
+
       if ((eventSnap.snapshot.value as Map)["driverName"] != null) //!! GET FNAME
           {
         setState(() {
@@ -198,9 +334,45 @@ class MapSampleState extends State<MapSample> {
         });
       }
 
+      if ((eventSnap.snapshot.value as Map)["requestId"] != null) //!! GET FNAME
+          {
+        setState(() {
+          requestId = (eventSnap.snapshot.value as Map)["requestId"].toString();
+        });
+      }
+
+      if ((eventSnap.snapshot.value as Map)["driverRatings"] != null) //!! GET FNAME
+          {
+        setState(() {
+          rateDriver = (eventSnap.snapshot.value as Map)["driverRatings"].toString();
+          ratingDriver = rateDriver.toDouble()!;
+        });
+      }
+
+      if ((eventSnap.snapshot.value as Map)["driverId"] != null) //!! GET FNAME
+          {
+        setState(() {
+          driverId = (eventSnap.snapshot.value as Map)["driverId"].toString();
+
+          // if(driverId != null)
+          // {
+          //   if(driverId == "waiting")
+          //   {
+          //     showWaitingResponseFromDriverUI();
+          //     timerDialog();
+          //   } else {
+          //     showUIForAssignedDriverInfo();
+          //   }
+          // }
+
+        });
+      }
+
       if((eventSnap.snapshot.value as Map)["status"] != null)
       {
-        userRideRequestStatus = (eventSnap.snapshot.value as Map)["status"].toString();
+        setState(() {
+          userRideRequestStatus = (eventSnap.snapshot.value as Map)["status"].toString();
+        });
       }
 
       if((eventSnap.snapshot.value as Map)["driverLocation"] != null)
@@ -210,63 +382,74 @@ class MapSampleState extends State<MapSample> {
 
         LatLng driverCurrentPositionLatLng = LatLng(driverCurrentPositionLat, driverCurrentPositionLng);
 
-        //when status = accepted
-        if(userRideRequestStatus == "accepted")
+        if(userRideRequestStatus != null)
         {
-          updateArrivalTimeToUserPickupLocation(driverCurrentPositionLatLng);
-        }
+          isVisible= !isVisible;
+          showUIForAssignedDriverInfo();
 
-        //when status = arrived
-        if(userRideRequestStatus == "arrived")
-        {
-          setState(() {
-            driverRideStatus = "Your driver has arrived.";
-          });
-        }
+          //when status = accepted
+          if(userRideRequestStatus == "accepted") {
+            if (notified==false)
+              {
+                passengerIsOfflineNow();
+                assignedDriverModal();
+                updateArrivalTimeToUserPickupLocation(driverCurrentPositionLatLng);
+                notified = true;
+              }
+          }
 
-        //when status = onTrip
-        if(userRideRequestStatus == "onTrip")
-        {
-          updateReachingTimeToUserDropOffLocation(driverCurrentPositionLatLng);
-        }
-
-        //when status = ended
-        if(userRideRequestStatus == "ended")
-        {
-          if((eventSnap.snapshot.value as Map)["fareAmount"] != null)
+          //when status = arrived
+          if(userRideRequestStatus == "arrived")
           {
-            double fareAmount = double.parse((eventSnap.snapshot.value as Map)["fareAmount"].toString());
-            
-            var response = await showDialog(
+            setState(() {
+              driverRideStatus = "Your driver has arrived.";
+            });
+          }
+
+          //when status = onTrip
+          if(userRideRequestStatus == "onTrip")
+          {
+            updateReachingTimeToUserDropOffLocation(driverCurrentPositionLatLng);
+          }
+
+          //when status = ended
+          if(userRideRequestStatus == "ended")
+          {
+            if((eventSnap.snapshot.value as Map)["fareAmount"] != null)
+            {
+              double fareAmount = double.parse((eventSnap.snapshot.value as Map)["fareAmount"].toString());
+
+              var response = await showDialog(
                 context: context,
                 barrierDismissible: false,
                 builder: (BuildContext c) => PayFareAmountDialog(
                   fareAmount: fareAmount,
                 ),
-            );
+              );
 
-            if(response == "cashPayed")
-            {
-              //user can rate the driver
-              if((eventSnap.snapshot.value as Map)["driverId"] != null)
+              if(response == "cashPayed")
               {
-                String assignedDriverId = (eventSnap.snapshot.value as Map)["driverId"].toString();
-                
-                Navigator.push(context, MaterialPageRoute(builder: (c)=> RateDriverScreen(
-                  assignedDriverId: assignedDriverId,
-                )));
+                //user can rate the driver
+                if((eventSnap.snapshot.value as Map)["driverId"] != null)
+                {
+                  String assignedDriverId = (eventSnap.snapshot.value as Map)["driverId"].toString();
 
-                referenceRideRequest!.onDisconnect();
-                tripRideRequestInfoStreamSubscription!.cancel();
+                  Navigator.push(context, MaterialPageRoute(builder: (c)=> RateDriverScreen(
+                    assignedDriverId: assignedDriverId,
+                  )));
+
+                  referenceRideRequest!.onDisconnect();
+                  tripRideRequestInfoStreamSubscription!.cancel();
+                }
               }
             }
           }
-        }
       }
+    }
     });
 
     onlineNearbyAvailableDriversList = GeoFireAssistant.activeNearbyAvailableDriversList;
-    searchNearestOnlineDrivers();
+    //searchNearestOnlineDrivers();
   }
 
   updateArrivalTimeToUserPickupLocation(driverCurrentPositionLatLng) async
@@ -325,97 +508,49 @@ class MapSampleState extends State<MapSample> {
     }
   }
 
-  searchNearestOnlineDrivers() async
-  {
-    //no active driver available
-    if(onlineNearbyAvailableDriversList.length == 0)
-      {
-        //cancel/delete the ride request
-        referenceRideRequest!.remove();
-
-        setState(() {
-          polyLineSet.clear();
-          markersSet.clear();
-          circlesSet.clear();
-          pLineCoOrdinatesList.clear();
-        });
-
-        Fluttertoast.showToast(msg: "No Online Nearby Drivers");
-        return;
-      }
-
-    //there are active drivers available
-    await retrieveOnlineDriversInformation(onlineNearbyAvailableDriversList);
-    
-    var response = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SelectNearestActiveDriversScreen(referenceRideRequest : referenceRideRequest)));
-
-    if(response == "driverChoosed")
-    {
-      FirebaseDatabase.instance.ref()
-          .child("drivers")
-          .child(chosenDriverId!)
-          .once()
-          .then((snap)
-      {
-        if(snap.snapshot.value != null)
-          {
-            //send notification to that specific driver
-            sendNotificationToDriverNow(chosenDriverId!);
-
-            //Display Waiting Response from a Driver UI
-            showWaitingResponseFromDriverUI();
-
-            //Response from the driver
-            FirebaseDatabase.instance.ref()
-                .child("drivers")
-                .child(chosenDriverId!)
-                .child("newRideStatus")
-                .onValue.listen((eventSnapshot)
-            {
-              //driver can cancel the RideRequest Push Notifications
-              //(newRideStatus = idle)
-              if(eventSnapshot.snapshot.value == "idle")
-              {
-                Fluttertoast.showToast(msg: "The driver has cancelled your request. Please choose another driver.");
-
-                Future.delayed(const Duration(milliseconds: 3000), ()
-                {
-                  Fluttertoast.showToast(msg: "Please Restart app now.");
-
-                  SystemNavigator.pop();
-                });
-              }
-
-              //accept the ride request push notification
-              //(newRideStatus = accepted)
-              if(eventSnapshot.snapshot.value == "accepted")
-              {
-                //design and display ui for displaying driver information
-                showUIForAssignedDriverInfo();
-              }
-            });
-          }
-          else
-          {
-            Fluttertoast.showToast(msg: "This driver do not exist. Try again.");
-          }
-      });
-    }
-  }
-
   showUIForAssignedDriverInfo()
   {
     setState(() {
+     // showWaitingResponseFromDriverUI();
+      isVisible = !isVisible;
       waitingResponseFromDriverContainerHeight = 0;
       assignedDriverInfoContainerHeight = Adaptive.h(30);
     });
+  }
+
+  showDialogForLongWaiting()
+  {
+    setState(() {
+        waitingResponseFromDriverContainerHeight = 0;
+        assignedDriverInfoContainerHeight = 0;
+        isVisible = true;
+
+        showDialog(
+          context: context,
+          builder: (context) => LongWaitUI(),
+        );
+        //remove ride request in dbase
+      FirebaseDatabase.instance.ref()
+          .child("All Ride Requests")
+          .child(referenceRideRequest!.key.toString())
+          .remove();
+      passengerIsOfflineNow();
+      // RestartWidget.restartApp(context);
+      });
+  }
+
+  timerDialog()
+  {
+   Timer(Duration(seconds: 500), () {
+     showDialogForLongWaiting();
+   });
   }
 
   showWaitingResponseFromDriverUI()
   {
     setState(() {
       isVisible = !isVisible;
-      waitingResponseFromDriverContainerHeight = Adaptive.h(30);
+      waitingResponseFromDriverContainerHeight = Adaptive.h(33);
 
         showDialog(
             context: context,
@@ -423,10 +558,9 @@ class MapSampleState extends State<MapSample> {
               Future.delayed(Duration(seconds: 3), () {
                 Navigator.of(context).pop(true);
               });
-              return ProcessingBookingDialog();
-            });
+              return ProcessingBookingDialog(message: "Please wait..",);
+            }); // showdialog
     });
-
   }
 
   sendNotificationToDriverNow(String chosenDriverId)
@@ -464,7 +598,6 @@ class MapSampleState extends State<MapSample> {
         return;
       }
     });
-
   }
 
   retrieveOnlineDriversInformation(List onlineNearestDriversList) async
@@ -505,36 +638,100 @@ class MapSampleState extends State<MapSample> {
                     decoration: BoxDecoration(
                       color: Color(0xFFFED90F),
                     ),
-                    accountName: new Text('Machu'),
-                    accountEmail: new Text(user.email!),
-                    currentAccountPicture: new CircleAvatar(
-                      radius: 50.0,
-                      backgroundImage: AssetImage("assets/images/machu.jpg"),
+                    accountName: // new Text(widget.name.toString())
+                    new Text(name,
+                      style: TextStyle( color: Colors.white,
+                        fontSize: 15,
+                        fontFamily: "Montserrat",
+                        fontWeight: FontWeight.w600,),
+                    ),// added null condition here,
+                  accountEmail: user.email! !=null ? new Text(user.email!,
+                  style: TextStyle( color: Colors.white,
+                    fontSize: 15,
+                    fontFamily: "Montserrat",
+                    fontWeight: FontWeight.w600,),
+                ): new Text(""),
+                  currentAccountPicture: new CircleAvatar(
+                  radius: 50.0,
+                  backgroundColor: Colors.transparent,
+                  backgroundImage:  AssetImage("assets/images/icon.png"),
+                  ),
+                  ),
+                  ListTile(
+                    title: new Text("Home",
+                      style: TextStyle(
+                          fontFamily: 'Montserrat', fontSize: 15, color: Color(0xFFFED90F), letterSpacing: -0.5, fontWeight: FontWeight.w400
+                      ),
+                    ),
+                    onTap: (){
+                      Navigator.pushAndRemoveUntil<dynamic>(context,
+                        MaterialPageRoute<dynamic>(
+                          builder: (BuildContext context) => MapSample(),
+                        ), (route) => false,//if you want to disable back feature set to false
+                      );
+                      if(referenceRideRequest!.key != null)
+                      {
+                        FirebaseDatabase.instance.ref()
+                            .child("All Ride Requests")
+                            .child(referenceRideRequest!.key.toString())
+                            .remove();
+                      }
+                    },
+                    leading: Icon(
+                      Icons.home,
+                      color: Color(0xFFFED90F),
+                    ),
+                    trailing: Icon(
+                      Icons.arrow_right,
+                      color: Color(0xFFFED90F),
                     ),
                   ),
                   ListTile(
-                    title: new Text("Visit Profile"),
-                    onTap: (){
-                      Navigator.pushReplacement(context, MaterialPageRoute(
-                        builder: (_) => ProfileScreen(),
+                    title: new Text("Visit Profile",
+                      style: TextStyle(
+                          fontFamily: 'Montserrat', fontSize: 15, color: Color(0xff646262), letterSpacing: -0.5, fontWeight: FontWeight.w400
                       ),
+                    ),
+                    onTap: (){
+                      Navigator.pushAndRemoveUntil<dynamic>(context,
+                        MaterialPageRoute<dynamic>(
+                          builder: (BuildContext context) => ViewProfile(),
+                        ), (route) => false,//if you want to disable back feature set to false
                       );
+                      if(referenceRideRequest!.key != null)
+                      {
+                        FirebaseDatabase.instance.ref()
+                            .child("All Ride Requests")
+                            .child(referenceRideRequest!.key.toString())
+                            .remove();
+                      }
                     },
                     leading: Icon(
                       Icons.account_circle_sharp,
-                      color: Color(0xFFFED90F),
                     ),
                     trailing: Icon(
                       Icons.arrow_right,
                     ),
                   ),
                   ListTile(
-                    title: new Text("History"),
-                    onTap: (){
-                      Navigator.pushReplacement(context, MaterialPageRoute(
-                        builder: (_) => TripsHistoryScreen(),
+                    title: new Text("History",
+                      style: TextStyle(
+                          fontFamily: 'Montserrat', fontSize: 15, color: Color(0xff646262), letterSpacing: -0.5, fontWeight: FontWeight.w400
                       ),
+                    ),
+                    onTap: (){
+                      Navigator.pushAndRemoveUntil<dynamic>(context,
+                        MaterialPageRoute<dynamic>(
+                          builder: (BuildContext context) => TripsHistoryScreen(),
+                        ), (route) => false,//if you want to disable back feature set to false
                       );
+                      if(referenceRideRequest!.key != null)
+                      {
+                        FirebaseDatabase.instance.ref()
+                            .child("All Ride Requests")
+                            .child(referenceRideRequest!.key.toString())
+                            .remove();
+                      }
                     },
                     leading: Icon(
                       Icons.question_answer_outlined,
@@ -544,36 +741,28 @@ class MapSampleState extends State<MapSample> {
                     ),
                   ),
                   ListTile(
-                    title: new Text("FAQ"),
+                    title: new Text("FAQ",
+                      style: TextStyle(
+                          fontFamily: 'Montserrat', fontSize: 15, color: Color(0xff646262), letterSpacing: -0.5, fontWeight: FontWeight.w400
+                      ),
+                    ),
                     onTap: ()
                     {
-                      Navigator.pushReplacement(context, MaterialPageRoute(
-                        builder: (_) => AboutScreen(),
-                      ),
+                      Navigator.pushAndRemoveUntil<dynamic>(context,
+                        MaterialPageRoute<dynamic>(
+                          builder: (BuildContext context) => FAQScreen(),
+                        ), (route) => false,//if you want to disable back feature set to false
                       );
+                      if(referenceRideRequest!.key != null)
+                      {
+                        FirebaseDatabase.instance.ref()
+                            .child("All Ride Requests")
+                            .child(referenceRideRequest!.key.toString())
+                            .remove();
+                      }
                     },
                     leading: Icon(
                       Icons.info_outline_rounded,
-                    ),
-                    trailing: Icon(
-                      Icons.arrow_right,
-                    ),
-                  ),
-                  ListTile(
-                    title: new Text("Settings"),
-                    onTap: (){},
-                    leading: Icon(
-                      Icons.settings,
-                    ),
-                    trailing: Icon(
-                      Icons.arrow_right,
-                    ),
-                  ),
-                  ListTile(
-                    title: new Text("Terms & Conditions"),
-                    onTap: (){},
-                    leading: Icon(
-                      Icons.book,
                     ),
                     trailing: Icon(
                       Icons.arrow_right,
@@ -593,7 +782,11 @@ class MapSampleState extends State<MapSample> {
                           children: <Widget>[
                             Divider(),
                             ListTile(
-                              title: Text("Sign Out"),
+                              title: Text("Sign Out",
+                                style: TextStyle(
+                                    fontFamily: 'Montserrat', fontSize: 15, color: Color(0xff646262), letterSpacing: -0.5, fontWeight: FontWeight.w400
+                                ),
+                              ),
                               onTap: () async => await _signOut(),
                               leading: Icon(
                                 Icons.logout,
@@ -613,288 +806,437 @@ class MapSampleState extends State<MapSample> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: GoogleMap(
-              mapType: MapType.normal,
-              myLocationEnabled: true,
-              zoomGesturesEnabled: true,
-              zoomControlsEnabled: true,
-              initialCameraPosition: _kGooglePlex,
-              polylines: polyLineSet,
-              markers: markersSet,
-              circles: circlesSet,
-              onMapCreated: (GoogleMapController controller) {
-                _controllerGoogleMap.complete(controller);
-                newGoogleMapController = controller;
+      body: Stack(
+        children: <Widget> [ Column(
+          children: [
+            Expanded(
+              child: GoogleMap(
+                mapType: MapType.normal,
+                myLocationEnabled: true,
+                zoomGesturesEnabled: true,
+                zoomControlsEnabled: true,
+                initialCameraPosition: _kGooglePlex,
+                polylines: polyLineSet,
+                markers: markersSet,
+                // circles: circlesSet,
+                onMapCreated: (GoogleMapController controller) {
+                  _controllerGoogleMap.complete(controller);
+                  newGoogleMapController = controller;
 
-                locateUserPosition();
-              },
+                  readLifePoints();
+
+                  name = userModelCurrentInfo!.first_name! + " " + userModelCurrentInfo!.last_name!;
+                  userName = userModelCurrentInfo!.username!;
+                  userId = userModelCurrentInfo!.id!;
+                  userEmail = userModelCurrentInfo!.email!;
+                  locateUserPosition();
+                },
+              ),
             ),
-          ),
-          if (isVisible)
-            Column(
-              children: [
-                Container(
-                  width: Adaptive.w(100),
-                  decoration: BoxDecoration(
-                    color: Color(0xFFFED90F),
-                    //borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "Hello " + userModelCurrentInfo!.username!.toString() + "!"  ,
-                      //AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
-                      //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
-                      style: TextStyle(
-                          fontFamily: 'Montserrat',
-                          color: Colors.white,
-                          fontSize: 18.sp,
-                          letterSpacing: -1,
-                          fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center,
+            if (isVisible)
+              Column(
+                children: [
+                  Container(
+                    width: Adaptive.w(100),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFED90F),
+                      //borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Hello " + userName,
+                          //userModelCurrentInfo!.username! != null ? "Hello " + userModelCurrentInfo!.username! + "!" : "Hello!",
+                        //AssistantMethods.calculateFareAmountFromOriginToDestination(tripDirectionDetailsInfo!).toString(),
+                        //tripDirectionDetailsInfo != null ? tripDirectionDetailsInfo!.distance_text! : "",
+                        style: TextStyle(
+                            fontFamily: 'Montserrat',
+                            color: Colors.white,
+                            fontSize: 18.sp,
+                            letterSpacing: -1,
+                            fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: Adaptive.h(1.5),),
-                Text("Where are you heading to?",
-                  style: TextStyle(
-                      fontFamily: 'Montserrat',
-                      color: Colors.black,
-                      fontSize: 19.sp,
-                      letterSpacing: -1,
-                      fontWeight: FontWeight.bold),
-                  //textAlign: TextAlign.center,
-                ),
-                SizedBox(height: Adaptive.h(1.5),),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: <Widget> [
-                          TextFormField(
-                            readOnly: true,
-                            //controller: _originController,
-                            //textCapitalization: TextCapitalization.words,
-                            enabled: false,
-                            decoration: InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Color(0xFFFED90F),),
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                hintText: Provider.of<AppInfo>(context).userPickUpLocation != null
-                                    ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
-                                    : "Current location",
-                                hintStyle: TextStyle( color: Color(0xbc000000),
-                                  fontSize: 15,
-                                  fontFamily: "Montserrat",
-                                  fontWeight: FontWeight.w400,),
-                                fillColor: Colors.white,
-                                filled: true,
-                                suffixIcon: Icon(Icons.location_pin,  color: Color(0xffCCCCCC))
+                  SizedBox(height: Adaptive.h(1.5),),
+                  Text("Where are you heading to?",
+                    style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        color: Colors.black,
+                        fontSize: 19.sp,
+                        letterSpacing: -1,
+                        fontWeight: FontWeight.bold),
+                    //textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: Adaptive.h(1.5),),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          children: <Widget> [
+                            TextFormField(
+                              readOnly: true,
+                              //controller: _originController,
+                              //textCapitalization: TextCapitalization.words,
+                              enabled: false,
+                              decoration: InputDecoration(
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Color(0xFFFED90F),),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  hintText: Provider.of<AppInfo>(context).userPickUpLocation != null
+                                      ? Provider.of<AppInfo>(context).userPickUpLocation!.locationName!
+                                      : "Current location",
+                                  hintStyle: TextStyle( color: Color(0xbc000000),
+                                    fontSize: 15,
+                                    fontFamily: "Montserrat",
+                                    fontWeight: FontWeight.w400,),
+                                  fillColor: Colors.white,
+                                  filled: true,
+                                  suffixIcon: Icon(Icons.location_pin,  color: Color(0xffCCCCCC))
+                              ),
                             ),
-                          ),
-                          SizedBox(height: Adaptive.h(1.5),),
-                          TextFormField(
-                            //controller: _destinationController,
-                            //textCapitalization: TextCapitalization.words,
-                            readOnly: true,
-                            onTap: () async
-                            {
-                             var responseFromSearchScreen = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
+                            SizedBox(height: Adaptive.h(1.5),),
+                            TextFormField(
+                              controller: _destinationController,
+                              //textCapitalization: TextCapitalization.words,
+                              readOnly: true,
+                              onTap: () async
+                              {
+                               var responseFromSearchScreen = await Navigator.push(context, MaterialPageRoute(builder: (c)=> SearchPlacesScreen()));
 
-                             if(responseFromSearchScreen == "Obtained Destination Address")
-                               {
-                                 //Draw Routes and polyline
-                                 await drawPolyLineFromSourceToDestination();
-                               }
-                            },
-                            decoration: InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Colors.white),
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: Color(0xFFFED90F),),
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                hintText:  Provider.of<AppInfo>(context).userDropOffLocation != null
-                                    ? Provider.of<AppInfo>(context).userDropOffLocation!.locationName!
-                                    : "Destination",
-                                hintStyle: TextStyle( color: Color(0xbc000000),
-                                  fontSize: 15,
-                                  fontFamily: "Montserrat",
-                                  fontWeight: FontWeight.w400,),
-                                fillColor: Colors.white,
-                                filled: true,
-                                suffixIcon: Icon(Icons.storefront,  color: Color(0xffCCCCCC))
+                               if(responseFromSearchScreen == "Obtained Destination Address")
+                                 {
+                                   //Draw Routes and polyline
+                                   await drawPolyLineFromSourceToDestination();
+                                 }
+                              },
+                              decoration: InputDecoration(
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.fromLTRB(10, 10, 10, 0),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Colors.white),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: Color(0xFFFED90F),),
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  hintText:  Provider.of<AppInfo>(context).userDropOffLocation != null
+                                      ? Provider.of<AppInfo>(context).userDropOffLocation!.locationName!
+                                      : "Destination",
+                                  hintStyle: TextStyle( color: Color(0xbc000000),
+                                    fontSize: 15,
+                                    fontFamily: "Montserrat",
+                                    fontWeight: FontWeight.w400,),
+                                  fillColor: Colors.white,
+                                  filled: true,
+                                  suffixIcon: Icon(Icons.storefront,  color: Color(0xffCCCCCC))
+                              ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: Adaptive.h(1.5),),
+                  MaterialButton(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50)
+                    ),
+                    minWidth: Adaptive.w(40),
+                    child: Text("Request a Ride", style: TextStyle( color: Colors.white,
+                      fontSize: 15,
+                      fontFamily: "Montserrat",
+                      fontWeight: FontWeight.w600,),),
+                    color: Color(0XFF0CBC8B),
+                    onPressed: () async
+                    {
+                      if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
+                        {
+                          passengerIsOnlineNow();
+                          saveRideRequestInformation();
+                          showWaitingResponseFromDriverUI();
+
+                        }
+                      else
+                        {
+                          Fluttertoast.showToast(msg: "Please select your destination location first.");
+                        }
+                    },
+                  ),
+                  SizedBox(height: Adaptive.h(1.5),),
+                ],
+              ),
+
+            //ui for waiting response from the driver
+            Positioned(
+              left: 0,
+              right: 0,
+              child: Container(
+                width: 100.w,
+                height: waitingResponseFromDriverContainerHeight,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFED90F),
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(20),
+                    topLeft: Radius.circular(20),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 15.0),
+                      child: Text("We are processing your booking...",
+                      style: TextStyle( color: Colors.white,
+                        fontSize: 15,
+                        fontFamily: "Montserrat",
+                        fontWeight: FontWeight.w600,),
+                      ),
+                    ),
+                    Text("Please wait while we connect you to your driver.",
+                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 11, fontStyle: FontStyle.italic),
+                    ),
+                    SizedBox(height: Adaptive.h(2),),
+                    FittedBox(
+                      fit: BoxFit.fill,
+                      child: Row(
+                        children: [
+                          SizedBox(width: Adaptive.w(2),),
+                          Image.asset("assets/images/line.png", height: Adaptive.h(14),),
+                          SizedBox(width: Adaptive.w(5),),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.location_pin, size: 15, color:  Color(0XFF9E9E9E),),
+                                  Text("Pickup Point:",
+                                    style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600,color: Color(0XFF9E9E9E)),),
+                                ],
+                              ),
+                              Container(
+                                width: Adaptive.w(70),
+                                child: Text(userCurrentLocation,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontFamily: 'Montserrat',),),
+                              ), //PLACE YOUR LOCATION HERE
+                              SizedBox(height: Adaptive.h(2),),
+                              Center(
+                                child: Container(
+                                  width: 280,
+                                  height: 2,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(32),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: Adaptive.h(1),),
+                              Row(
+                                children: [
+                                  Icon(Icons.storefront, size: 15, color: Color(0XFFFFBA4C),),
+                                  SizedBox(width: Adaptive.w(1),),
+                                  Text("Destination:",
+                                    style: TextStyle(fontFamily: 'Montserrat', fontWeight: FontWeight.w600, color: Color(0XFFFFBA4C)),),
+                                ],
+                              ),
+                              Container(
+                                width: Adaptive.w(70),
+                                child: Text(userDropOffAddress.toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontFamily: 'Montserrat',),),
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ),
+                    SizedBox(height: Adaptive.h(1),),
+                    MaterialButton(
+                      onPressed: (){
+                        showDialogForLongWaiting();
+                      },
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50)
+                      ),
+                      minWidth: Adaptive.w(30),
+                      child: Text("Cancel Waiting", style: TextStyle( color: Colors.white,
+                        fontSize: 15,
+                        fontFamily: "Montserrat",
+                        fontWeight: FontWeight.w600,),),
+                      color: Color(0XFFE74338),
+                    ),
                   ],
                 ),
-                SizedBox(height: Adaptive.h(1.5),),
-                MaterialButton(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50)
-                  ),
-                  minWidth: Adaptive.w(40),
-                  child: Text("Request a Ride", style: TextStyle( color: Colors.white,
-                    fontSize: 15,
-                    fontFamily: "Montserrat",
-                    fontWeight: FontWeight.w600,),),
-                  color: Color(0XFF0CBC8B),
-                  onPressed: () async
-                  {
-                    if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
-                      {
-                        saveRideRequestInformation();
-                        //showDialog(
-                        //  context: context,
-                        //  builder: (context) => ActiveDriver(),
-                        //);
-                        //Navigator.push(context, MaterialPageRoute(builder: (c)=> AcceptDecline()));
-                      }
-                    else
-                      {
-                        Fluttertoast.showToast(msg: "Please select your destination location first.");
-                      }
-                  },
-                ),
-                SizedBox(height: Adaptive.h(1.5),),
-              ],
-            ),
 
-          //ui for waiting response from the driver
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: waitingResponseFromDriverContainerHeight,
-              decoration: const BoxDecoration(
-                color: Color(0xFFFED90F),
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20),
-                  topLeft: Radius.circular(20),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Center(
-                  child: Text("Please wait...",
-                  style: TextStyle( color: Colors.white,
-                    fontSize: 15,
-                    fontFamily: "Montserrat",
-                    fontWeight: FontWeight.w600,),
-                  ),
-                ),
               ),
             ),
-          ),
 
-          //ui for displaying assigned driver info
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: assignedDriverInfoContainerHeight,
-              decoration: const BoxDecoration(
-                color: Color(0xFFEBE5D8),
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20),
-                  topLeft: Radius.circular(20),
+            //ui for displaying assigned driver info
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: assignedDriverInfoContainerHeight,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFED90F),
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(20),
+                    topLeft: Radius.circular(20),
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(15.0),
-                child:Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Text(driverRideStatus,
-                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: Adaptive.h(2),
-                    ),
-                    Divider(
-                      height: 0.5.h,
-                      thickness: 2,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(
-                      height: Adaptive.h(2),
-                    ),
-                    Center(
-                      child: Text(driverName,
-                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: Adaptive.h(0.5),
-                    ),
-                    Center(
-                      child: Text(driverTricDetails,
-                        style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      height: Adaptive.h(2),
-                    ),
-                    Divider(
-                      height: 0.5.h,
-                      thickness: 2,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(
-                      height: Adaptive.h(1),
-                    ),
-                    Center(
-                      child: ElevatedButton.icon(
-                        onPressed: ()
-                        {
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 18.0),
+                  child:Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget> [
+                          SizedBox(width: Adaptive.w(2),),
+                          // SizedBox(width: Adaptive.w(2),),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.person_pin,
+                                    size: 20,
+                                    color: Color(0xFF272727),
+                                  ),SizedBox(width: Adaptive.w(2),),
+                                  Text(driverName,
+                                    textAlign: TextAlign.left,
+                                    style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.7.w, fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text("Tricycle Plate Number: " + driverTricDetails,
+                                    style: TextStyle(fontFamily: 'Montserrat', fontSize: 3.6.w,
+                                    ),
+                                  ),
+                                  Text( driverPhone,
+                                    style: TextStyle(fontFamily: 'Montserrat', fontSize: 3.6.w,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
 
-                        },
-                        style: ElevatedButton.styleFrom(
-                          primary:  Color(0xFF0CBC8B),
-                        ),
-                        icon: Icon(
-                          Icons.call,
-                          color: Colors.white,
-                          size: 22,
-                        ),
-                        label: Text(
-                          "Call Driver",
-                          style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,
+                        ],
+                      ),
+                      SizedBox(
+                        height: Adaptive.h(2),
+                      ),
+                      Center(
+                        child: Container(
+                          width:Adaptive.w(90),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(20)),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 7.0),
+                            child: Center(
+                              child: Text(driverRideStatus,
+                                style: TextStyle(fontFamily: 'Montserrat', fontSize: 4.3.w, fontWeight: FontWeight.w600,color: Color(0XFF0CBC8B),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      SizedBox(
+                        height: Adaptive.h(1),
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          MaterialButton(
+                            onPressed: (){
+                              showDialog(
+                                context: context,
+                                builder: (context) => tripInvoice(),
+                              );
+                            },
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50)
+                            ),
+                            minWidth: Adaptive.w(37),
+                            child: Row(
+                              children: [
+                                Icon(
+                                Icons.receipt_long,
+                                color: Colors.white,
+                                size: 22,
+                              ),
+                                Text("View Trip Invoice",
+                                  style: TextStyle( color: Colors.white,
+                                  fontSize: 13,
+                                  fontFamily: "Montserrat",
+                                  fontWeight: FontWeight.w600,),),
+                              ],
+                            ),
+                            color: Color(0XFF0CBC8B),
+                          ),
+                          SizedBox(
+                            width: Adaptive.w(2),
+                          ),
+                          MaterialButton(
+                            onPressed: (){
+                              showDialog(
+                                context: context,
+                                builder: (context) => cancelDialog(),
+                              );
+                            },
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50)
+                            ),
+                            minWidth: Adaptive.w(40),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.cancel,
+                                  color: Colors.white,
+                                  size: 22,
+                                ),
+                                Text("Cancel Trip",
+                                  style: TextStyle( color: Colors.white,
+                                    fontSize: 13,
+                                    fontFamily: "Montserrat",
+                                    fontWeight: FontWeight.w600,),),
+                              ],
+                            ),
+                            color: Color(0XFFE74338),
+                          ),
+                        ],
+                      ),
+
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-
-        ],
+          ],
+        ),
+      ],
       ),
     );
   }
@@ -939,7 +1281,7 @@ class MapSampleState extends State<MapSample> {
 
      setState(() {
        Polyline polyline = Polyline(
-         color: Colors.red,
+         color: Color(0XFF0CBC8B),
          polylineId: const PolylineId("PolylineID"),
          jointType: JointType.round,
          points: pLineCoOrdinatesList,
@@ -978,23 +1320,35 @@ class MapSampleState extends State<MapSample> {
 
      newGoogleMapController!.animateCamera(CameraUpdate.newLatLngBounds(boundsLatLng, 65));
 
-     Marker originMarker = Marker(
+    setState(() async {
+      BitmapDescriptor originIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(),
+        "assets/images/originMarker.png",
+      );
+
+      BitmapDescriptor destinationIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(),
+        "assets/images/destinationMarker.png",
+      );
+
+      Marker originMarker = Marker(
         markerId: const MarkerId("originID"),
-       infoWindow: InfoWindow(title: sourcePosition.locationName, snippet: "Origin"),
-       position: sourceLatLng,
-       icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRose),
-     );
+        infoWindow: InfoWindow(title: sourcePosition.locationName, snippet: "Origin"),
+        position: sourceLatLng,
+        icon: originIcon,
+      );
 
-    Marker destinationMarker = Marker(
-      markerId: const MarkerId("destinationID"),
-      infoWindow: InfoWindow(title: destinationPosition.locationName, snippet: "Destination"),
-      position: destinationLatLng,
-      icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-    );
+      Marker destinationMarker = Marker(
+        markerId: const MarkerId("destinationID"),
+        infoWindow: InfoWindow(title: destinationPosition.locationName, snippet: "Destination"),
+        position: destinationLatLng,
+        icon: destinationIcon,
+      );
 
-    setState(() {
-      markersSet.add(originMarker);
-      markersSet.add(destinationMarker);
+      setState(() {
+        markersSet.add(originMarker);
+        markersSet.add(destinationMarker);
+      });
     });
 
     Circle originCircle = Circle(
@@ -1018,58 +1372,6 @@ class MapSampleState extends State<MapSample> {
     setState(() {
       circlesSet.add(originCircle);
       circlesSet.add(destinationCircle);
-    });
-  }
-
-  //Section 17: Para Mapalabas ang ACTIVE
-  initializeGeoFireListener() {
-    Geofire.initialize("activeDrivers");
-    Geofire.queryAtLocation(
-        userCurrentPosition!.latitude, userCurrentPosition!.longitude, 20)!
-        .listen((map) {
-      print(map);
-      if (map != null) {
-        var callBack = map['callBack'];
-
-        //latitude will be retrieved from map['latitude']
-        //longitude will be retrieved from map['longitude']
-
-        switch (callBack)
-        {
-          case Geofire.onKeyEntered: //whenever any driver become active or online
-            ActiveNearbyAvailableDrivers activeNearbyAvailableDrivers = ActiveNearbyAvailableDrivers();
-            activeNearbyAvailableDrivers.locationLatitude = map['latitude'];
-            activeNearbyAvailableDrivers.locationLongitude = map['longitude'];
-            activeNearbyAvailableDrivers.driverId = map['key'];
-            GeoFireAssistant.activeNearbyAvailableDriversList.add(activeNearbyAvailableDrivers);
-            if(activeNearbyDriverKeysLoaded == true)
-              {
-                displayActiveDriversOnUsersMap();
-              }
-            break;
-
-          case Geofire.onKeyExited: //whenever any driver become non-active or offline
-            GeoFireAssistant.deleteOfflineDriverFromList(map['key']);
-            break;
-
-          //whenever the driver moves - update driver location
-          case Geofire.onKeyMoved:
-            ActiveNearbyAvailableDrivers activeNearbyAvailableDrivers = ActiveNearbyAvailableDrivers();
-            activeNearbyAvailableDrivers.locationLatitude = map['latitude'];
-            activeNearbyAvailableDrivers.locationLongitude = map['longitude'];
-            activeNearbyAvailableDrivers.driverId = map['key'];
-            GeoFireAssistant.updateActiveNearbyAvailableDriveLocation(activeNearbyAvailableDrivers);
-            displayActiveDriversOnUsersMap();
-            break;
-
-          //display those online drivers on users map
-          case Geofire.onGeoQueryReady:
-            displayActiveDriversOnUsersMap();
-            break;
-        }
-      }
-
-      setState(() {});
     });
   }
 
@@ -1101,65 +1403,53 @@ class MapSampleState extends State<MapSample> {
     });
   }
 
-}
+  readLifePoints()
+  {
+    FirebaseDatabase.instance.ref()
+        .child("passengers")
+        .child(user.uid)
+        .child("lifePoints")
+        .onValue.listen((eventSnap)
+    {
+      // var finalLife, lifepoints;
+      // lifepoints = eventSnap.snapshot.value;
+      // finalLife = 0;
+      // finalLife = --lifepoints;
+      // print("Life: " + lifepoints.toString());
+      if(eventSnap.snapshot.value == 0)
+      {
+        Navigator.pushReplacement(context, MaterialPageRoute(
+          builder: (_) => SignIn(),
+        ),
+        );
+        Fluttertoast.showToast(msg: "Sorry, your account has been suspended due to malicious activities. Please contact the admin from the TODA terminal.");
+      }
+     });
+  }
 
-class BookingSuccessDialog extends StatelessWidget {
-  final _priceController = TextEditingController();
-  BookingSuccessDialog({Key? key}) : super(key: key);
+  passengerIsOfflineNow()
+  {
+    Geofire.removeLocation(user.uid);
 
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      insetPadding: EdgeInsets.symmetric(vertical: Adaptive.h(36)),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(19)
-      ),
-      child: Container(
-        width: Adaptive.w(80),
-        child: Column(
-          children: [
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: Adaptive.h(4),),
-                SpinKitFadingCircle(
-                  color: Colors.black,
-                  size: 50,
-                ),
-                Container(
-                  width: Adaptive.w(60),
-                  color: Colors.white,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Column(
-                        children: [
-                          SizedBox(height: Adaptive.h(1),),
-                          Text("Processing Booking...",
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              color: Colors.black,
-                              fontSize: 20,
-                              letterSpacing: -0.5,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text("Booking ID: 554321",
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              color: Colors.black,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],),
-      ),
-    );
+    DatabaseReference? ref = FirebaseDatabase.instance.ref()
+        .child("passenger")
+        .child(user.uid)
+        .child("newRideStatus");
+    ref.onDisconnect();
+    ref.remove();
+    ref = null;
+  }
+
+  assignedDriverModal() async
+  {
+    notified=true;
+    AudioPlayer().play(AssetSource('sounds/notif_sound.mp3'));
+    await Timer(Duration(milliseconds: 800), () {
+      showDialog(
+          context: context,
+          builder: (context) => AssignedDriverWidget(),
+      );
+    });
   }
 }
+

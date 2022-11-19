@@ -34,9 +34,15 @@ dependencies:
   animated_text_kit: ^4.2.2
 
   smooth_star_rating_nsafe: ^1.0.0+1
+  flutter_rating_bar: ^4.0.1
   intl: ^0.17.0
 
+  firebase_messaging: ^13.1.0
+  assets_audio_player: ^3.0.5
+
   responsive_sizer: ^3.1.1
+
+  audioplayers: ^1.1.1
 
   flutter_polyline_points: ^1.0.0
   google_maps_flutter: ^2.2.0
@@ -60,6 +66,7 @@ environment:
 flutter:
   assets:
     - assets/images/
+    - assets/sounds/notif_sound.mp3
   fonts:
     -
       family: "Rubik"

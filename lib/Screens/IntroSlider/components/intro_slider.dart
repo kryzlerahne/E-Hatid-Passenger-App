@@ -1,6 +1,4 @@
-import 'package:ehatid_passenger_app/Screens/Home/homescreen.dart';
 import 'package:ehatid_passenger_app/Screens/IntroSlider/components/home_bg.dart';
-import 'package:ehatid_passenger_app/Screens/Login/components/register.dart';
 import 'package:ehatid_passenger_app/Screens/Registration/sign_up.dart';
 import 'package:ehatid_passenger_app/Screens/Wallet/wallet.dart';
 import 'package:ehatid_passenger_app/navigation.dart';
@@ -10,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:intro_slider/dot_animation_enum.dart';
 import 'package:intro_slider/intro_slider.dart';
 import 'package:intro_slider/slide_object.dart';
+import 'package:responsive_sizer/responsive_sizer.dart';
 
 class IntroSliderPage extends StatefulWidget {
   @override
@@ -64,7 +63,7 @@ class _IntroSliderPageState extends State<IntroSliderPage> {
                   child: Image.asset(
                     currentSlide.pathImage.toString(),
                     matchTextDirection: true,
-                    height: 250,
+                    width: Adaptive.h(50),
                   ),
                 ),
                 Container(
@@ -73,14 +72,7 @@ class _IntroSliderPageState extends State<IntroSliderPage> {
                     currentSlide.title.toString(),
                     overflow: TextOverflow.visible,
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      height: 1.171875,
-                      fontSize: 32,
-                      fontFamily: 'Montserrat',
-                      fontWeight: FontWeight.w700,
-                      color: Color.fromARGB(255, 32, 32, 32),
-                      letterSpacing: -1.6800000000000002,
-                    ),
+                    style: TextStyle(fontFamily: 'Montserrat', fontSize: 30, letterSpacing: -2, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Container(
@@ -90,12 +82,7 @@ class _IntroSliderPageState extends State<IntroSliderPage> {
                   child: Text(
                     currentSlide.description.toString(),
                     style: TextStyle(
-                      height: 1.171875,
-                      fontSize: 15.0,
-                      fontFamily: 'Montserrat',
-                      fontWeight: FontWeight.w500,
-                      color: Color.fromARGB(255, 126, 126, 126),
-                      letterSpacing: -0.48,
+                        fontFamily: 'Montserrat', fontSize: 15, color: Color(0xff646262), letterSpacing: -0.5, fontWeight: FontWeight.w500
                     ),
                     maxLines: 3,
                     textAlign: TextAlign.center,
@@ -120,6 +107,7 @@ class _IntroSliderPageState extends State<IntroSliderPage> {
   Widget build(BuildContext context) {
     return HomeBackground(
       child: IntroSlider(
+        //backgroundColorAllSlides: Colors.yellow,
         renderSkipBtn: Text(
           "Skip",
           style: TextStyle(fontFamily: 'Montserrat', fontSize: 20, color: Color(0xff8C8C8C)),

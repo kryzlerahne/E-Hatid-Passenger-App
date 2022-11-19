@@ -26,41 +26,49 @@ class _HistoryDesignUIWidgetState extends State<HistoryDesignUIWidget>
     return formattedDateTime;
   }
 
-
   @override
   Widget build(BuildContext context)
   {
     return Container(
-      color: Color(0XFF0CBC8B),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.all(Radius.circular(20),),
+        color: Colors.white,
+      ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 18, vertical: 18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            //driver name + fare amount
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 8.0),
-                  child: Text(
-                    "Driver: " + widget.tripsHistoryModel!.driverName!,
-                    style: TextStyle( color: Color(0xbc000000),
-                      fontSize: 15,
-                      fontFamily: "Montserrat",
-                      fontWeight: FontWeight.w400,),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Color(0XFFFED90F),
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 11.0, vertical: 2.0),
+                      child: Text(
+                        "Driver: " + widget.tripsHistoryModel!.driverName!,
+                        style: TextStyle( color: Color(0xbc000000),
+                          fontSize: 15,
+                          fontFamily: "Montserrat",
+                          fontWeight: FontWeight.w400,),
+                      ),
+                    ),
                   ),
                 ),
 
                 SizedBox(width: 1.w,),
-
                 Text(
                   "Php " + widget.tripsHistoryModel!.fareAmount!,
-                  style: TextStyle( color: Color(0xbc000000),
-                    fontSize: 15,
+                  style: TextStyle( color: Color(0xFF0CBC8B),
+                    fontSize: 16,
                     fontFamily: "Montserrat",
-                    fontWeight: FontWeight.w400,),
+                    fontWeight: FontWeight.w800,),
                 ),
               ],
             ),
@@ -74,14 +82,12 @@ class _HistoryDesignUIWidgetState extends State<HistoryDesignUIWidget>
                   Icons.car_repair,
                   color: Colors.grey,
                 ),
-
-
                 SizedBox(width: 1.w,),
 
                 Text(
                   widget.tripsHistoryModel!.driverPlateNum!,
                   style: TextStyle( color: Color(0xbc000000),
-                    fontSize: 15,
+                    fontSize: 13,
                     fontFamily: "Montserrat",
                     fontWeight: FontWeight.w400,),
                 ),
@@ -91,69 +97,91 @@ class _HistoryDesignUIWidgetState extends State<HistoryDesignUIWidget>
             SizedBox(height: Adaptive.h(1),),
 
             //icon + pickup
-            Row(
-              children: [
-                Icon(Icons.location_pin,
-                color: Color(0xffCCCCCC),
-                ),
-
-                SizedBox(width: 1.w,),
-
-                Expanded(
-                  child: Container(
-                    child: Text(
-                      widget.tripsHistoryModel!.originAddress!,
-                      //overflow: TextOverflow.ellipsis,
-                      style: TextStyle( color: Color(0xbc000000),
-                        fontSize: 15,
-                        fontFamily: "Montserrat",
-                        fontWeight: FontWeight.w400,),
+            Container(
+              decoration: BoxDecoration(
+                color: Color(0XFFEBE5D8),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.location_pin,
+                    color: Color(0xffCCCCCC),
                     ),
-                  ),
+                    SizedBox(width: 1.w,),
+                    Expanded(
+                      child: Container(
+                        child: Text(
+                          widget.tripsHistoryModel!.originAddress!,
+                          //overflow: TextOverflow.ellipsis,
+                          style: TextStyle( color: Color(0xbc000000),
+                            fontSize: 13,
+                            fontFamily: "Montserrat",
+                            fontWeight: FontWeight.w400,),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
+            SizedBox(height: Adaptive.h(1),),
 
             //icon + dropOff
-            Row(
-              children: [
-                Icon(Icons.storefront,
-                  color: Color(0xffCCCCCC),
-                ),
-
-                SizedBox(width: 1.w,),
-
-                Expanded(
-                  child: Container(
-                    child: Text(
-                      widget.tripsHistoryModel!.destinationAddress!,
-                      //overflow: TextOverflow.ellipsis,
-                      style: TextStyle( color: Color(0xbc000000),
-                        fontSize: 15,
-                        fontFamily: "Montserrat",
-                        fontWeight: FontWeight.w400,),
+            Container(
+              decoration: BoxDecoration(
+                color: Color(0XFFEBE5D8),
+                borderRadius: BorderRadius.all(Radius.circular(10)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 2.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.storefront,
+                      color: Color(0xffCCCCCC),
                     ),
-                  ),
-                ),
-              ],
-            ),
+                    SizedBox(width: 1.w,),
 
+                    Expanded(
+                      child: Container(
+                        child: Text(
+                          widget.tripsHistoryModel!.destinationAddress!,
+                          //overflow: TextOverflow.ellipsis,
+                          style: TextStyle( color: Color(0xbc000000),
+                            fontSize: 13,
+                            fontFamily: "Montserrat",
+                            fontWeight: FontWeight.w400,),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 1.h,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(""),
-                Text(
-                  formatDateAndTime(widget.tripsHistoryModel!.time!),
-                  style: TextStyle( color: Color(0xbc000000),
-                    fontSize: 15,
-                    fontFamily: "Montserrat",
-                    fontWeight: FontWeight.w400,),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 11.0, vertical: 2.0),
+                    child: Text(
+                      formatDateAndTime(widget.tripsHistoryModel!.time!),
+                      style: TextStyle( color: Color(0xbc000000),
+                        fontSize: 13,
+                        fontFamily: "Montserrat",
+                        fontWeight: FontWeight.w400,),
+                    ),
+                  ),
                 ),
               ],
             ),
-
-            SizedBox(height: Adaptive.h(1),),
-
           ],
         ),
       ),

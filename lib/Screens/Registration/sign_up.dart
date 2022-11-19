@@ -24,6 +24,7 @@ class _SignUpState extends State<SignUp> {
         .size;
     //total height and width
     return Scaffold(
+      backgroundColor: Color(0XFFF8D516),
       body: SafeArea(
         child: Container(
           height: size.height,

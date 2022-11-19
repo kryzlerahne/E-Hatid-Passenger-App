@@ -1,12 +1,13 @@
 import 'dart:async';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ehatid_passenger_app/Screens/IntroSlider/intro.dart';
 import 'package:ehatid_passenger_app/Screens/Login/components/forget_pw.dart';
 import 'package:ehatid_passenger_app/Screens/Home/homescreen.dart';
 import 'package:ehatid_passenger_app/Screens/Login/components/register.dart';
+import 'package:ehatid_passenger_app/main.dart';
 import 'package:ehatid_passenger_app/main_page.dart';
 import 'package:ehatid_passenger_app/map_page.dart';
+import 'package:ehatid_passenger_app/processing_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -30,14 +31,46 @@ class _SignInState extends State<SignIn> {
 
   final FirebaseAuth fAuth = FirebaseAuth.instance;
   User? currentFirebaseUser;
+  DatabaseReference? referenceLifePoints;
+  late FocusNode myFocusNode;
+  late FocusNode myFocusNode2;
 
-  Future signIn() async {
+  @override
+  void initState() {
+    super.initState();
+
+    myFocusNode = FocusNode();
+    myFocusNode2 = FocusNode();
+  }
+
+  validateForm() {
+    if(_emailController.text != null && !_emailController.text.contains("@"))
+    {
+      myFocusNode.requestFocus();
+      Fluttertoast.showToast(msg: "Enter a valid email.");
+    }
+    else if(_passwordController.text.isEmpty)
+    {
+      myFocusNode2.requestFocus();
+      Fluttertoast.showToast(msg: "Please enter your password.");
+    }
+    else if(_passwordController.text.length < 8)
+    {
+      Fluttertoast.showToast(msg: "Password must be atleast 8 Characters.");
+    }
+    else
+    {
+      signIn();
+    }
+  }
+
+  Future signIn() async
+  {
     final User? firebaseUser = (
         await fAuth.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         ).catchError((msg){
-          Navigator.pop(context);
           Fluttertoast.showToast(msg: "Error: " + msg.toString());
         })
     ).user;
@@ -51,9 +84,16 @@ class _SignInState extends State<SignIn> {
         if(snap.value != null)
         {
           currentFirebaseUser = firebaseUser;
-          Fluttertoast.showToast(msg: "Login Successful.");
+          showDialog(
+              context: context,
+              builder: (BuildContext context) => ProcessingBookingDialog(
+              message: "Authenticating account..",
+          ));
           Timer(const Duration(seconds: 3),(){
-            Navigator.push(context, MaterialPageRoute(builder: (c)=>  MapSample()));
+            Fluttertoast.showToast(msg: "Login Successful.");
+            Navigator.of(context, rootNavigator:
+            true).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                MapSample()), (route) => false);
           });
         }
         else
@@ -73,6 +113,8 @@ class _SignInState extends State<SignIn> {
 
   @override
   void dispose() {
+    myFocusNode.dispose();
+    myFocusNode2.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -112,7 +154,7 @@ class _SignInState extends State<SignIn> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Image.asset("assets/images/loginLogo.png",
-                          width: 250
+                          width: 250,
                       ),
                       Padding(
                         padding: EdgeInsets.only(top: 10),
@@ -131,6 +173,7 @@ class _SignInState extends State<SignIn> {
                         padding: const EdgeInsets.symmetric(horizontal: 25),
                         child: TextField(
                           controller: _emailController,
+                          focusNode: myFocusNode,
                           decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(color: Colors.white),
@@ -156,6 +199,7 @@ class _SignInState extends State<SignIn> {
                         padding: const EdgeInsets.symmetric(horizontal: 25),
                         child: TextField(
                           controller: _passwordController,
+                          focusNode: myFocusNode2,
                           obscureText: _isHidden,
                           decoration: InputDecoration(
                             enabledBorder: OutlineInputBorder(
@@ -209,9 +253,12 @@ class _SignInState extends State<SignIn> {
                         ),
                       ),
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25),
+                        padding: const EdgeInsets.symmetric(horizontal: 30),
                         child: MaterialButton(
-                          onPressed: signIn,
+                          onPressed: ()
+                          {
+                            validateForm();
+                          },
                           color: Color(0xFFFED90F),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50)
@@ -233,14 +280,14 @@ class _SignInState extends State<SignIn> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text("Don't have an account yet?", style: TextStyle(
-                                color: Color(0xFF494949), fontFamily: 'Montserrat', fontSize: 15, letterSpacing: -0.5, fontWeight: FontWeight.w500
+                                color: Color(0xFF494949), fontFamily: 'Montserrat', fontSize: 14, letterSpacing: -0.5, fontWeight: FontWeight.w500
                             ),
                             ),
                             TextButton(
                               onPressed: () {
                                 Navigator.pushReplacement(context, MaterialPageRoute(
                                   builder: (_) => RegisterPage(),
-                                ),
+                                  ),
                                 );
                               },
                               child: Text("Register", style: TextStyle(fontFamily: 'Montserrat', fontSize: 16,

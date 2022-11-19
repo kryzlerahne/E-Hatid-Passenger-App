@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:ehatid_passenger_app/Screens/IntroSlider/intro.dart';
 import 'package:ehatid_passenger_app/Screens/Welcome/components/body.dart';
+import 'package:ehatid_passenger_app/assistant_methods.dart';
+import 'package:ehatid_passenger_app/global.dart';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -13,6 +15,9 @@ class _WelcomeScreen extends State<WelcomeScreen> {
 
   @override
   void initState() {
+
+    fAuth.currentUser != null ? AssistantMethods.readCurrentOnlineUserInfo() : "null";
+
     //seconds of wait for loading screen
     Timer(const Duration(seconds: 5), (){
       //after 5 seconds

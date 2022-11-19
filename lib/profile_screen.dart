@@ -1,12 +1,12 @@
 import 'package:ehatid_passenger_app/global.dart';
 import 'package:ehatid_passenger_app/info_design_ui.dart';
+import 'package:ehatid_passenger_app/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class ProfileScreen extends StatefulWidget
 {
-
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -21,7 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
         backgroundColor: Color(0xFFFED90F),
         title: Text(
-          "Trips History",
+          "My Profile",
           style:TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold),
         ),
         elevation: 0,
@@ -29,7 +29,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icon(Icons.close),
           onPressed: ()
           {
-            Navigator.pop(context);
+            Navigator.pushReplacement(context, MaterialPageRoute(
+              builder: (_) => MapSample(),
+            ),
+            );
           },
         ),
       ),
@@ -77,7 +80,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ElevatedButton(
                 onPressed: ()
                 {
-                  SystemNavigator.pop();
+                  Navigator.pushReplacement(context, MaterialPageRoute(
+                    builder: (_) => MapSample(),
+                  ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   primary: Colors.white54,

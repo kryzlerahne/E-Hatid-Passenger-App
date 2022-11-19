@@ -3,6 +3,7 @@ import 'package:ehatid_passenger_app/app_info.dart';
 import 'package:ehatid_passenger_app/directions.dart';
 import 'package:ehatid_passenger_app/global.dart';
 import 'package:ehatid_passenger_app/predicted_places.dart';
+import 'package:ehatid_passenger_app/processing_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:ehatid_passenger_app/request_assistant.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
@@ -24,8 +25,8 @@ class _PlacePredictionTileDesignState extends State<PlacePredictionTileDesign> {
   {
     showDialog(
         context: context,
-        builder: (BuildContext context) => ProgressDialog(
-          message: "Setting up drop off, Please wait..",
+        builder: (BuildContext context) => ProcessingBookingDialog(
+          message: "Setting up drop off point..",
         ),
     );
 
@@ -49,7 +50,6 @@ class _PlacePredictionTileDesignState extends State<PlacePredictionTileDesign> {
       directions.locationLongitude = responseApi["result"]["geometry"]["location"]["lng"];
 
       Provider.of<AppInfo>(context, listen: false).updateDropOffLocationAddress(directions);
-
 
       setState(() {
         userDropOffAddress = directions.locationName!;

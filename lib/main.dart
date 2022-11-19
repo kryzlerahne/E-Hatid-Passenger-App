@@ -1,6 +1,8 @@
+import 'package:ehatid_passenger_app/Screens/IntroSlider/components/intro_slider.dart';
 import 'package:ehatid_passenger_app/Screens/IntroSlider/intro.dart';
 import 'package:ehatid_passenger_app/Screens/Welcome/welcome_screen.dart';
 import 'package:ehatid_passenger_app/app_info.dart';
+import 'package:ehatid_passenger_app/assistant_methods.dart';
 import 'package:ehatid_passenger_app/constants.dart';
 import 'package:ehatid_passenger_app/Screens/Home/homescreen.dart';
 import 'package:ehatid_passenger_app/main_page.dart';
@@ -13,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'assistant_methods.dart';
 
 int initScreen = 0;
 
@@ -25,15 +28,28 @@ Future <void> main() async {
   }
 
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  runApp(
+    RestartWidget(
+      child: MyApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp ({
-    Key? key,
-  }) : super(key: key);
+class MyApp extends StatefulWidget {
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
+
+  @override
+  void initState() {
+    super.initState();
+
+    AssistantMethods.readCurrentOnlineUserInfo();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ResponsiveSizer(
@@ -58,3 +74,38 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+class RestartWidget extends StatefulWidget {
+  RestartWidget({this.child});
+
+  final Widget? child;
+
+  static void restartApp(BuildContext context) {
+    context.findAncestorStateOfType<_RestartWidgetState>()?.restartApp();
+  }
+
+  @override
+  State<StatefulWidget> createState() {
+    return _RestartWidgetState();
+  }
+}
+
+class _RestartWidgetState extends State<RestartWidget> {
+  Key key = UniqueKey();
+
+  void restartApp() {
+    setState(() {
+      key = UniqueKey();
+    });
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(
+      key: key,
+      child: widget.child ?? Container(),
+    );
+  }
+}
+

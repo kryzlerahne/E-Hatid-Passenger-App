@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 
 class ProcessingBookingDialog extends StatelessWidget {
-  const ProcessingBookingDialog({Key? key}) : super(key: key);
+  String? message;
+  ProcessingBookingDialog({this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +16,8 @@ class ProcessingBookingDialog extends StatelessWidget {
           borderRadius: BorderRadius.circular(19)
       ),
       child: Container(
-        width: Adaptive.w(80),
+        width: Adaptive.w(10),
+        height: Adaptive.h(20),
         child: Column(
           children: [
             Column(
@@ -33,22 +37,23 @@ class ProcessingBookingDialog extends StatelessWidget {
                       Column(
                         children: [
                           SizedBox(height: Adaptive.h(1),),
-                          Text("Processing Booking...",
-                            style: TextStyle(
-                              fontFamily: 'Montserrat',
-                              color: Colors.black,
-                              fontSize: 20,
-                              letterSpacing: -0.5,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text("Booking ID: 554321",
+                          Text(message!,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontFamily: 'Montserrat',
                               color: Colors.black,
                               fontSize: 15,
+                              letterSpacing: -0.5,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          // Text("Booking ID: 554321",
+                          //   style: TextStyle(
+                          //     fontFamily: 'Montserrat',
+                          //     color: Colors.black,
+                          //     fontSize: 15,
+                          //   ),
+                          // ),
                         ],
                       ),
                     ],

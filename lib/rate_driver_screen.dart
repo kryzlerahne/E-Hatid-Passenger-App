@@ -1,10 +1,15 @@
 import 'package:ehatid_passenger_app/global.dart';
+import 'package:ehatid_passenger_app/main.dart';
+import 'package:ehatid_passenger_app/map_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
 import 'package:smooth_star_rating_nsafe/smooth_star_rating.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
 
 class RateDriverScreen extends StatefulWidget
 {
@@ -18,10 +23,12 @@ class RateDriverScreen extends StatefulWidget
 }
 
 class _RateDriverScreenState extends State<RateDriverScreen> {
+  final user = FirebaseAuth.instance.currentUser!;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
+      backgroundColor: Color(0XFFFFFCEA),
       body: Dialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
@@ -89,7 +96,7 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
                   if(countRatingStars == 5)
                   {
                     setState(() {
-                      titleStarsRating = "Excellent";
+                      titleStarsRating = "  Excellent";
                     });
                   }
                 },
@@ -115,6 +122,7 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
                     {
                       rateDriverRef.set(countRatingStars.toString());
 
+                      passengerIsOfflineNow();
                       SystemNavigator.pop();
                     }
                     else
@@ -123,7 +131,8 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
                       double newAverageRatings = (pastRatings + countRatingStars) / 2;
                       rateDriverRef.set(newAverageRatings.toString());
 
-                      SystemNavigator.pop();
+                      passengerIsOfflineNow();
+                      RestartWidget.restartApp(context);
                     }
 
                     Fluttertoast.showToast(msg: "Please restart the app now.");
@@ -145,5 +154,18 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
         ),
       ),
     );
+  }
+
+  passengerIsOfflineNow()
+  {
+    Geofire.removeLocation(user.uid);
+
+    DatabaseReference? ref = FirebaseDatabase.instance.ref()
+        .child("passenger")
+        .child(user.uid)
+        .child("newRideStatus");
+    ref.onDisconnect();
+    ref.remove();
+    ref = null;
   }
 }

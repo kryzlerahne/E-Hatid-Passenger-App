@@ -46,59 +46,68 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Scaffold(
       backgroundColor: Color(0xFFFFFCEA),
       appBar: AppBar(
-        backgroundColor: Colors.yellow,
+        title: Text(
+          "Reset Password",
+          style:TextStyle(fontFamily: 'Montserrat', fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        backgroundColor:Color(0xFFFED90F),
         elevation: 0,
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 5),
-            child: Text("Please enter your email and we will send you a password reset link.",
-              textAlign: TextAlign.center,
-              style: TextStyle( color: Color(0xbc000000),
-                fontSize: 15,
-                fontFamily: "Montserrat",
-                fontWeight: FontWeight.w400,
+      body: Stack(
+        children: [ Container(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 5),
+                child: Text("Please enter your email and we will send you a password reset link.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle( color: Color(0xbc000000),
+                    fontSize: 15,
+                    fontFamily: "Montserrat",
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ),
-            ),
-          ),
-          SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-            child: TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white),
-                  borderRadius: BorderRadius.circular(15),
+              SizedBox(height: 10),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+                child: TextField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFED90F),),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    hintText: "Email",
+                    prefixIcon: Icon(Icons.person, color: Color(0xffCCCCCC)),
+                    hintStyle: TextStyle( color: Color(0xbc000000),
+                      fontSize: 15,
+                      fontFamily: "Montserrat",
+                      fontWeight: FontWeight.w400,),
+                    fillColor: Colors.white,
+                    filled: true,
+                  ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Color(0xFFFED90F),),
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                hintText: "Email",
-                prefixIcon: Icon(Icons.person, color: Color(0xffCCCCCC)),
-                hintStyle: TextStyle( color: Color(0xbc000000),
+              ),
+              SizedBox(height: 10),
+              MaterialButton(
+                onPressed: passwordReset,
+                child: Text("Reset Password", style: TextStyle( color: Color(0xbc000000),
                   fontSize: 15,
                   fontFamily: "Montserrat",
-                  fontWeight: FontWeight.w400,),
-                fillColor: Colors.white,
-                filled: true,
+                  fontWeight: FontWeight.w600,),),
+                color: Color(0xFFFED90F),
               ),
-            ),
+            ],
           ),
-          SizedBox(height: 10),
-          MaterialButton(
-            onPressed: passwordReset,
-            child: Text("Reset Password", style: TextStyle( color: Color(0xbc000000),
-              fontSize: 15,
-              fontFamily: "Montserrat",
-              fontWeight: FontWeight.w600,),),
-            color: Colors.yellow,
-          ),
-        ],
-      ),
+        ),
+      ]),
     );
   }
 }
