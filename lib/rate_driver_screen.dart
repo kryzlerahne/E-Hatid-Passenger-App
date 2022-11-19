@@ -135,7 +135,7 @@ class _RateDriverScreenState extends State<RateDriverScreen> {
                       RestartWidget.restartApp(context);
                     }
 
-                    Fluttertoast.showToast(msg: "Please restart the app now.");
+                    Fluttertoast.showToast(msg: "Thank you for booking. Keep safe!");
                   });
                 },
                 shape: RoundedRectangleBorder(
