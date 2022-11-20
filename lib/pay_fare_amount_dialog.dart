@@ -1,15 +1,22 @@
 import 'package:ehatid_passenger_app/trips_history_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:responsive_sizer/responsive_sizer.dart';
-
+import 'global.dart';
 
 class PayFareAmountDialog extends StatefulWidget
 {
   double? fareAmount;
+  double? baseAmount;
+  double? bookingFee;
   TripsHistoryModel? tripsHistoryModel;
 
-  PayFareAmountDialog({this.fareAmount, this.tripsHistoryModel});
+  PayFareAmountDialog({
+    this.fareAmount,
+    this.baseAmount,
+    this.tripsHistoryModel,
+    this.bookingFee});
 
   @override
   State<PayFareAmountDialog> createState() => _PayFareAmountDialogState();
@@ -18,6 +25,9 @@ class PayFareAmountDialog extends StatefulWidget
 
 class _PayFareAmountDialogState extends State<PayFareAmountDialog>
 {
+
+  final currentFirebaseUser = FirebaseAuth.instance.currentUser!;
+
   @override
   Widget build(BuildContext context)
   {
@@ -78,9 +88,28 @@ class _PayFareAmountDialogState extends State<PayFareAmountDialog>
             SizedBox(height: 1.h),
 
             Padding(
-              padding: EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(5.0),
               child: Column(
                 children: [
+                  Text(
+                    "Base Amount: ₱" + baseAmount.toString(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: "Montserrat",
+                      color: Color(0xFF0CBC8B),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    "Booking Fee: ₱" + bookingFee.toString(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontFamily: "Montserrat",
+                      color: Color(0xFF0CBC8B),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: Adaptive.h(1),),
                   Text(
                     "This is the total trip fare amount, Please pay it to the driver.",
                     textAlign: TextAlign.center,

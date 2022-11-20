@@ -38,6 +38,7 @@ LatLng? destinationLatLng;
 
 double bookingFee = 0;
 double totalFareAmount = 0;
+double baseAmount=0;
 
 PassengerData onlinePassengerData = PassengerData();
 AssetsAudioPlayer audioPlayer = AssetsAudioPlayer();

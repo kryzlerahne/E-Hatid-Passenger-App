@@ -403,6 +403,8 @@ class MapSampleState extends State<MapSample> {
                 barrierDismissible: false,
                 builder: (BuildContext c) => PayFareAmountDialog(
                   fareAmount: fareAmount,
+                  baseAmount: baseAmount,
+                  bookingFee: bookingFee,
                 ),
               );
 
@@ -943,34 +945,52 @@ class MapSampleState extends State<MapSample> {
                       fontFamily: "Montserrat",
                       fontWeight: FontWeight.w600,),),
                     color: Color(0XFF0CBC8B),
-                    onPressed: ()
-                    {
+                    onPressed: () {
+                      // getFareAmount();
+                      //
+                      // Timer(Duration(milliseconds: 400), () async {
+                      //   var response = await showDialog(
+                      //       context: context,
+                      //       barrierDismissible: false,
+                      //       builder: (BuildContext c) => ShowAmount()
+                      //   );
+                      //
+                      //   if (response=="AgreedFareAmount")
+                      //
+                      //     if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
+                      //     {
+                      //       passengerIsOnlineNow();
+                      //       saveRideRequestInformation();
+                      //       showWaitingResponseFromDriverUI();
+                      //     }
+                      //     else
+                      //     {
+                      //       Fluttertoast.showToast(msg: "Please select your destination location first.");
+                      //     }
+                      //
+                      // });
 
-                      getFareAmount();
-
-                      Timer(Duration(milliseconds: 400), () async {
-                        var response = await showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext c) => ShowAmount()
-                        );
-
-                        if (response=="AgreedFareAmount")
-                        {
-                          if(Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
-                          {
+                      if (Provider.of<AppInfo>(context, listen: false).userDropOffLocation != null)
+                      {
+                        getFareAmount();
+                        Timer(Duration(milliseconds: 400), () async {
+                          var response = await showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext c) => ShowAmount()
+                          );
+                          if (response == "AgreedFareAmount") {
                             passengerIsOnlineNow();
                             saveRideRequestInformation();
                             showWaitingResponseFromDriverUI();
                           }
-                          else
-                          {
-                            Fluttertoast.showToast(msg: "Please select your destination location first.");
-                          }
-                        }
-                      });
-                    },
-                  ),
+                        });
+                      }
+                      else {
+                        Fluttertoast.showToast(
+                            msg: "Please select your destination location first.");
+                      }
+                    }),
                   SizedBox(height: Adaptive.h(1.5),),
                 ],
               ),
@@ -1282,14 +1302,14 @@ class MapSampleState extends State<MapSample> {
 
     setState(() {
       Polyline polyline = Polyline(
-        color: Color(0XFF0CBC8B),
+        color: Color(0XFFE74338),
         polylineId: const PolylineId("PolylineID"),
         jointType: JointType.round,
         points: pLineCoOrdinatesList,
         startCap: Cap.roundCap,
         endCap: Cap.roundCap,
         geodesic: true,
-        width: 3,
+        width: 6,
       );
 
       polyLineSet.add(polyline);
@@ -1479,7 +1499,7 @@ class MapSampleState extends State<MapSample> {
         if(snap.snapshot.value != null)
         {
           String fareAmount = snap.snapshot.value.toString();
-          totalFareAmount = fareAmount.toDouble()!;
+          baseAmount = fareAmount.toDouble()!;
 
           FirebaseDatabase.instance.ref()
               .child("fareAmount")
@@ -1489,7 +1509,7 @@ class MapSampleState extends State<MapSample> {
           {
             String booking = snapShot.snapshot.value.toString();
             bookingFee = booking.toDouble()!;
-            totalFareAmount = totalFareAmount + bookingFee;
+            totalFareAmount = baseAmount + bookingFee;
             print("FareAmount: " + totalFareAmount.toString());
 
             FirebaseDatabase.instance.ref()
@@ -1513,7 +1533,7 @@ class MapSampleState extends State<MapSample> {
         if(snap.snapshot.value != null)
         {
           String fareAmount = snap.snapshot.value.toString();
-          totalFareAmount = fareAmount.toDouble()!;
+          baseAmount = fareAmount.toDouble()!;
 
           FirebaseDatabase.instance.ref()
               .child("fareAmount")
@@ -1523,7 +1543,7 @@ class MapSampleState extends State<MapSample> {
           {
             String booking = snapShot.snapshot.value.toString();
             bookingFee = booking.toDouble()!;
-            totalFareAmount = totalFareAmount + bookingFee;
+            totalFareAmount = baseAmount + bookingFee;
             print("FareAmount: " + totalFareAmount.toString());
 
             FirebaseDatabase.instance.ref()

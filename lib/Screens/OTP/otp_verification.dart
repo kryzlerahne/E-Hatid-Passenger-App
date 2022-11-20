@@ -76,7 +76,7 @@ class _OtpBodyState extends State<OtpBody> {
       verificationCompleted: (PhoneAuthCredential credential) async{
         await FirebaseAuth.instance.signInWithCredential(credential).then((value){
           if(value.user != null){
-            Navigator.of(context).push(MaterialPageRoute(builder: (c) => RegisterPage(phone:  "0" + widget.phone,)));
+            Navigator.of(context).push(MaterialPageRoute(builder: (c) => OtpVerified(phone:  "0" + widget.phone,)));
           }
         });
       },
@@ -220,7 +220,7 @@ class _OtpBodyState extends State<OtpBody> {
                                 .then((value) {
                               if(value.user != null){
                                 // Navigator.of(context).push(MaterialPageRoute(builder: (c) => OtpVerified()));
-                                Navigator.of(context).push(MaterialPageRoute(builder: (c) => RegisterPage(
+                                Navigator.of(context).push(MaterialPageRoute(builder: (c) => OtpVerified(
                                   phone: "0" + widget.phone,
                                 )));
                               }
@@ -294,10 +294,7 @@ class _OtpBodyState extends State<OtpBody> {
                     child: MaterialButton(
                       onPressed: (){
                         if(pin.length >= 6) {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (c) => OtpVerified(
-                            phone: "0" + widget.phone,
-                          )));
-                          // verifyOTP();
+                           verifyOTP();
                         } else {
                           Fluttertoast.showToast(msg: "Invalid OTP.");
                         }

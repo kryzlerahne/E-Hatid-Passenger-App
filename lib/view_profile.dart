@@ -300,10 +300,10 @@ class _ViewProfileState extends State<ViewProfile> {
                         ),
                         Text("Username: @" + userModelCurrentInfo!.username!,
                           style: TextStyle(
-                              fontFamily: 'Montserrat', fontSize: 13, color: Color(0xffB3B2B2), letterSpacing: -0.5, fontWeight: FontWeight.w400
+                              fontFamily: 'Montserrat', fontSize: 13, color: Color(0xff7D7D7D), letterSpacing: -0.5, fontWeight: FontWeight.w400
                           ),
                         ),
-                        SizedBox(height: 3.h,),
+                        SizedBox(height: 5.h,),
                         Card(
                           elevation: 3, // the size of the shadow
                           color: Color(0XFFFFEE95),
@@ -322,12 +322,28 @@ class _ViewProfileState extends State<ViewProfile> {
                                 children: [
                                   Icon(Icons.email,  color: Color(0xFFFED90F)),
                                   SizedBox(width: 2.w,),
-                                  Text(
-                                    "Email: " + userModelCurrentInfo!.email!,
-                                    style: TextStyle( color: Color(0xbc000000),
-                                      fontSize: 13,
-                                      fontFamily: "Montserrat",
-                                      fontWeight: FontWeight.w400,),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        "Email: ",
+                                        //overflow: TextOverflow.ellipsis,
+                                        style: TextStyle( color: Color(0xbc000000),
+                                          fontSize: 13,
+                                          fontFamily: "Montserrat",
+                                          fontWeight: FontWeight.w400,),
+                                      ),
+                                      Container(
+                                        width: Adaptive.w(50),
+                                        child: Text(
+                                          userModelCurrentInfo!.email!,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle( color: Color(0xbc000000),
+                                            fontSize: 13,
+                                            fontFamily: "Montserrat",
+                                            fontWeight: FontWeight.w400,),
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -396,38 +412,8 @@ class _ViewProfileState extends State<ViewProfile> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 1.h,),
-                        Card(
-                          elevation: 3, // the size of the shadow
-                          color: Color(0XFFFFEE95),
-                          shadowColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15.0),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 15.0),
-                            child: SizedBox(
-                              width: 75.w,
-                              height: 8.h,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.password,  color: Color(0xFFFED90F)),
-                                  SizedBox(width: 2.w,),
-                                  Text(
-                                    "Password: " + userModelCurrentInfo!.password!,
-                                    style: TextStyle( color: Color(0xbc000000),
-                                      fontSize: 13,
-                                      fontFamily: "Montserrat",
-                                      fontWeight: FontWeight.w400,),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 1.h,),
+
+                        SizedBox(height: 4.h,),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
