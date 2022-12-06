@@ -46,15 +46,15 @@ class _ShowAmountState extends State<ShowAmount> {
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           color: Colors.white,
-                          fontSize: 19.sp,
+                          fontSize: 19,
                           letterSpacing: -0.5,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
+                      SizedBox(width: Adaptive.w(1),),
                       Icon(
                         Icons.wallet,
-                        size: 25.sp,
+                        size: 25,
                         color: Colors.white,
                       ),
                     ],

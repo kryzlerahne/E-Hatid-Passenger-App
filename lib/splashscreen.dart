@@ -41,15 +41,9 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Stack(
             alignment: Alignment.center,
             children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Image.asset("assets/images/ehatid pass.png",
-                    ),
-                  ),
-                ],
+              Center(
+                child: Image.asset("assets/images/ehatid pass.png",
+                ),
               ),
             ],
           ),

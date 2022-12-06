@@ -1088,16 +1088,15 @@ class MapSampleState extends State<MapSample> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(50)
                       ),
-                      minWidth: Adaptive.w(30),
+                      minWidth: Adaptive.w(40),
                       child: Text("Cancel Waiting", style: TextStyle( color: Colors.white,
-                        fontSize: 15,
+                        fontSize: 16,
                         fontFamily: "Montserrat",
                         fontWeight: FontWeight.w600,),),
                       color: Color(0XFFE74338),
                     ),
                   ],
                 ),
-
               ),
             ),
 
@@ -1162,7 +1161,7 @@ class MapSampleState extends State<MapSample> {
                         ],
                       ),
                       SizedBox(
-                        height: Adaptive.h(2),
+                        height: Adaptive.h(3),
                       ),
                       Center(
                         child: Container(
@@ -1183,7 +1182,7 @@ class MapSampleState extends State<MapSample> {
                         ),
                       ),
                       SizedBox(
-                        height: Adaptive.h(1),
+                        height: Adaptive.h(3),
                       ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,

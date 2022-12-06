@@ -23,7 +23,8 @@ class _tripInvoiceState extends State<tripInvoice> {
     return Dialog(
       backgroundColor: Color(0XFFFFFCEA),
         child: Container(
-          height: Adaptive.h(65),
+          height: 480,
+          width: 900,
           decoration: BoxDecoration(
             color: Color(0XFFFFFCEA),
             borderRadius: BorderRadius.circular(30),
@@ -35,10 +36,28 @@ class _tripInvoiceState extends State<tripInvoice> {
                 left: -20,
                 child: Container(
                   child: Image.asset("assets/images/BgTrip.png",
-                      width: 320,
-                      height: 320,
+                      width: Adaptive.w(92),
                   ),
                   ),
+              ),
+              Positioned(
+                top: 410,
+                left: 50,
+                right: 50,
+                child: MaterialButton(
+                  onPressed: (){
+                    Navigator.of(context, rootNavigator: true).pop();
+                  },
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(50)
+                  ),
+                  minWidth: Adaptive.w(60),
+                  child: Text("Done", style: TextStyle( color: Colors.white,
+                    fontSize: 15,
+                    fontFamily: "Montserrat",
+                    fontWeight: FontWeight.w600,),),
+                  color: Color(0XFF0CBC8B),
+                ),
               ),
               Positioned(
                 top: Adaptive.h(6),
@@ -299,25 +318,8 @@ class _tripInvoiceState extends State<tripInvoice> {
                   ],
                 ),
               ),
-              SizedBox(height: Adaptive.h(100),),
-              Positioned(
-                top:Adaptive.h(56),
-                left: Adaptive.w(10),
-                child: MaterialButton(
-                  onPressed: (){
-                    Navigator.of(context, rootNavigator: true).pop();
-                  },
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50)
-                  ),
-                  minWidth: Adaptive.w(60),
-                  child: Text("Done", style: TextStyle( color: Colors.white,
-                    fontSize: 15,
-                    fontFamily: "Montserrat",
-                    fontWeight: FontWeight.w600,),),
-                  color: Color(0XFF0CBC8B),
-                ),
-              ),
+
+
             ],
           ),
         ),

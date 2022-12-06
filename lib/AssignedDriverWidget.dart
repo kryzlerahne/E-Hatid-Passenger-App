@@ -68,17 +68,15 @@ class _AssignedDriverWidgetState extends State<AssignedDriverWidget> {
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 23.0),
+                Center(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       SizedBox(height: 2.h,),
                       Text(
                         "Yay! We found you a driver.",
                         style:TextStyle(fontFamily: 'Montserrat', fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      SizedBox(height: 3.5.h,),
+                      SizedBox(height: 5.h,),
                       Container(
                         height: 10.h,
                         child: CircleAvatar(

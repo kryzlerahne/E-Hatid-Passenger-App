@@ -1,7 +1,5 @@
 import 'dart:async';
-
-import 'package:ehatid_passenger_app/global.dart';
-import 'package:ehatid_passenger_app/map_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:ehatid_passenger_app/processing_dialog.dart';
 import 'package:ehatid_passenger_app/view_profile.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -127,13 +125,19 @@ class _UpdateRecordState extends State<UpdateRecord> {
       focusPass.requestFocus();
       Fluttertoast.showToast(msg: "Password must be atleast 8 Characters.");
     }
+    // else if (_passwordController.value.text.isNotEmpty) {
+    //   FirebaseAuth.instance.currentUser!.updatePassword(_passwordController.text);
+    // }
     else {
+      //FirebaseAuth.instance.currentUser!.updateEmail(_emailController.text);
+      FirebaseAuth.instance.currentUser!.updatePassword(_passwordController.text);
       update();
     }
   }
 
   Future update() async
   {
+
     Map<String, String> passenger = {
       "first_name": _firstNameController.text.trim(),
       "last_name": _lastNameController.text.trim(),
@@ -175,8 +179,20 @@ class _UpdateRecordState extends State<UpdateRecord> {
     focusEmail.dispose();
     focusUsername.dispose();
     focusPass.dispose();
-
+    _passwordController.dispose();
     super.dispose();
+  }
+
+  var newPassword =" ";
+  final currentUser = FirebaseAuth.instance.currentUser;
+
+  changePassword() async {
+    try {
+      await currentUser!.updatePassword(newPassword);
+      validateForm();
+    } catch (error) {
+
+    }
   }
 
   @override
@@ -329,6 +345,7 @@ class _UpdateRecordState extends State<UpdateRecord> {
                     padding: EdgeInsets.only(bottom: 2.h),
                     child: TextField(
                       controller: _emailController,
+                      enabled: false,
                       focusNode: focusEmail,
                       obscureText: false,
                       decoration: InputDecoration(
