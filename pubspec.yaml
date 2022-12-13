@@ -67,6 +67,7 @@ flutter:
   assets:
     - assets/images/
     - assets/sounds/notif_sound.mp3
+    - assets/sounds/HoorayNotif.m4a
   fonts:
     -
       family: "Rubik"

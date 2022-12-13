@@ -48,7 +48,7 @@ class _AssignedDriverWidgetState extends State<AssignedDriverWidget> {
           borderRadius: BorderRadius.circular(19)
       ),
       child: Container(
-        height: 45.h,
+        height: 47.h,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(15),

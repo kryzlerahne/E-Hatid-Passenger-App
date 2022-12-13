@@ -495,7 +495,7 @@ class MapSampleState extends State<MapSample> {
       // showWaitingResponseFromDriverUI();
       isVisible = !isVisible;
       waitingResponseFromDriverContainerHeight = 0;
-      assignedDriverInfoContainerHeight = Adaptive.h(30);
+      assignedDriverInfoContainerHeight = Adaptive.h(33);
     });
   }
 
@@ -1463,7 +1463,8 @@ class MapSampleState extends State<MapSample> {
   assignedDriverModal() async
   {
     notified=true;
-    AudioPlayer().play(AssetSource('sounds/notif_sound.mp3'));
+    //AudioPlayer().play(AssetSource('sounds/notif_sound.mp3'));
+    AudioPlayer().play(AssetSource('sounds/HoorayNotif.m4a'));
     await Timer(Duration(milliseconds: 800), () {
       showDialog(
         context: context,
